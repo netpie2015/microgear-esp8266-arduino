@@ -3,10 +3,14 @@
 microgear-esp8266-arduino คือ client library ที่ทำหน้าที่เป็นตัวกลางในการเชื่อมต่อ ESP8266 เข้ากับบริการของ netpie platform เพื่อการพัฒนา IOT application รายละเอียดเกี่ยวกับ netpie platform สามารถศึกษาได้จาก http://netpie.io
 
 ## การติดตั้ง
-
-```
-git clone https://github.com/netpieio/microgear-esp8266-arduino.git
-```
+* ดาวน์โหลด Arduino IDE 1.6.5 จาก https://www.arduino.cc/en/Main/Software
+*  หลังจากติดตั้งเสร็จ เปิด Preferences
+*  ใส่ข้อความ `http://arduino.esp8266.com/stable/package_esp8266com_index.json` ลงในช่อง Additional Board Manager URLs
+*  เปิด Boards Manager เมนู Tools ค้นหาคำว่า `esp8266` และคลิก install
+*  ในเมนู Tools จะมีบอร์ด ESP8266 ชนิดต่างๆเพิ่มขึ้นมา เลือกให้ตรงกับชนิดของบอร์ดที่ใช้
+*  ดาวน์โหลด Microgear library จาก https://github.com/netpieio/microgear-esp8266-arduino/archive/master.zip
+*  Unzip ไปวางใน folder Libraries ของ Arduino IDE
+*  รายละเอียดเพิ่มเติมเกี่ยวกับ ESP8266 Arduino IDE ศึกษาได้จาก https://github.com/esp8266/Arduino
 
 ตัวอย่างการเรียกใช้
 ```c++
