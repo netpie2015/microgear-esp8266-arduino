@@ -84,6 +84,7 @@ void MicroGear::syncTime(Client *client, unsigned long *bts) {
 MicroGear::MicroGear(Client& netclient ) {
     sockclient = &netclient;
     constate = CLIENT_NOTCONNECT;
+    authclient = NULL;
 
     this->token = NULL;
     this->tokensecret = NULL;
@@ -309,10 +310,12 @@ boolean MicroGear::connect(char* appid) {
     this->appid = appid;
     topicprefixlen = strlen(appid)+1;
 
+    if (authclient) delete(authclient);
 	authclient = new AuthClient(*sockclient);
     authclient->init(appid,scope,bootts);
     getToken(token,tokensecret,endpoint);
 	delete(authclient);
+    authclient = NULL;
 
     /* generate one-time user/password */
     sprintf(username,"%s%%%s%%%lu",token,gearkey,bootts+millis()/1000);
