@@ -44,10 +44,6 @@ int timer = 0;
 MicroGear microgear(client);
 
 void setup() {
-	/* disable esp8266 watch dog, otherwise the board will keep rebooting */
-    ESP.wdtDisable();
-    Serial.begin(115200);
-
     /* Event listener */
     microgear.on(MESSAGE,msghandler);
     microgear.on(PRESENT,foundgear);
