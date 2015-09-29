@@ -32,6 +32,7 @@
 #define TOKENSECRETSIZE            32
 #define USERNAMESIZE               65
 #define PASSWORDSIZE               28
+#define REVOKECODESIZE             28
 
 #define EEPROM_STATE_NUL           65
 #define EEPROM_STATE_REQ           66
@@ -39,7 +40,8 @@
 #define EEPROM_STATEOFFSET         0
 #define EEPROM_TOKENOFFSET         1
 #define EEPROM_TOKENSECRETOFFSET   17
-#define EEPROM_ENDPOINTSOFFSET     49
+#define EEPROM_REVOKECODEOFFSET    49
+#define EEPROM_ENDPOINTSOFFSET     77
 
 #define MICROGEAR_NOTCONNECT       0
 #define MICROGEAR_CONNECTED        1
