@@ -3,8 +3,9 @@
 
 #include "Client.h"
 #include "SHA1.h"
+//#include "debug.h"
 
-#define GEARAUTHHOST "gearauth.netpie.io"
+#define GEARAUTHHOST "ga.netpie.io"
 #define GEARAUTHPORT 8080
 #define VERIFIER "1234"
 #define TOKENSIZE               16

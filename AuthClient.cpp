@@ -86,8 +86,14 @@ bool AuthClient::readln(char *buffer, size_t buflen) {
 				}
 				return true;
 			}
-			if (pos < buflen)
-			buffer[pos++] = byte;
+
+            if (byte != 255) {
+                if (pos < buflen) buffer[pos++] = byte;
+            }
+            else{
+                buffer[pos++] = '\0';
+                return true; 
+            } 
 		}
 	}
 	return false;
@@ -315,41 +321,43 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
         while(true) {
             if (readln(buff, (size_t)MAXHEADERLINESIZE)) {
 
-                #ifdef DEBUG_H
-                    Serial.println(buff);
-                #endif
-
-                    if (pline<2) {
+                    #ifdef DEBUG_H
+                        Serial.println(buff);
+                    #endif
+                    if (httpstatus==0) {
                         if (strncmp(buff,"HTTP",4)==0) {
                             buff[12] = '\0';
                             httpstatus = atoi(buff+9);
                         }
                     }
                     else {
-                        char *p;
-						char *s, *t;
-
-						int last = 0;
-                        p = buff;
-						while (*p != '\0') {
-							s = p;
-							while (*s!='=' && *s!='\0' && *s!='&') s++;	/* seek for = */
-							t= s;
-							while (*t!='\0' && *t!='&') t++;	        /* seek for & */
-							*s = '\0';
-							if (*t == '\0')	last = 1;
-							*t = '\0';
-	
-							if (strcmp(p,"oauth_token")==0) strcpy(token,s+1);
-							else if (strcmp(p,"oauth_token_secret")==0) strcpy(tokensecret,s+1);
-							else if (strcmp(p,"endpoint")==0) strcpy(endpoint,s+1);
-							delay(400);
-
-							if (!last) p = t+1; else break;
-						}
-                        return httpstatus;
+                           if (strlen(buff) < 1) {
+                                readln(buff, (size_t)MAXHEADERLINESIZE);
+                                char *p;
+                                char *s, *t;
+                                int last = 0;
+                                p = buff;
+                                while (*p != '\0') {
+                                    s = p;
+                                    while (*s!='=' && *s!='\0' && *s!='&') s++; // seek for =
+                                    t= s;
+                                    while (*t!='\0' && *t!='&') t++;            // seek for &
+                                    *s = '\0';
+                                    if (*t == '\0') last = 1;
+                                    *t = '\0';
+                                    if (strcmp(p,"oauth_token")==0) strcpy(token,s+1);
+                                    else if (strcmp(p,"oauth_token_secret")==0) strcpy(tokensecret,s+1);
+                                    else if (strcmp(p,"endpoint")==0) strcpy(endpoint,s+1);
+                                    delay(200);
+                                    if (!last) p = t+1; else break;
+                                }
+                                return httpstatus;
+                            }
                     }
-                    if (strlen(buff)<6) pline++;
+
+
+
+
             }
             else {
                 return 0;

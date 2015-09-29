@@ -6,10 +6,6 @@ void (* cb_present)(char*, uint8_t*,unsigned int);
 void (* cb_absent)(char*, uint8_t*,unsigned int);
 
 void msgCallback(char* topic, uint8_t* payload, unsigned int length) {
-	#ifdef DEBUG_H
-		Serial.println("Incoming msgcallback message-->");
-	#endif
-
     /* remove /appid/ */
     char* rtopic =  topic+topicprefixlen+1;
 

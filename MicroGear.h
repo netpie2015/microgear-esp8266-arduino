@@ -1,8 +1,7 @@
 /*
-  MicroGear Arduino library
+  MicroGear-Arduino-ESP8255 library
    NetPIE Project
    http://netpie.io
-
 */
 
 #ifndef MICROGEAR_H
@@ -16,11 +15,12 @@
 #include <EEPROM.h>
 #include "SHA1.h"
 #include "AuthClient.h"
+//#include "debug.h"
 
-#define GEARTIMEADDRESS "gearauth.netpie.io"
+#define GEARTIMEADDRESS "ga.netpie.io"
 #define GEARTIMEPORT 8080
 
-#define CLIENTTYPE "arduino.v1"
+#define CLIENTTYPE "esp1"
 
 #define MINBACKOFFTIME             10
 #define MAXBACKOFFTIME             10000
