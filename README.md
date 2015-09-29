@@ -2,6 +2,12 @@
 
 microgear-esp8266-arduino คือ client library ที่ทำหน้าที่เป็นตัวกลางในการเชื่อมต่อ ESP8266 เข้ากับบริการของ netpie platform เพื่อการพัฒนา IOT application รายละเอียดเกี่ยวกับ netpie platform สามารถศึกษาได้จาก http://netpie.io
 
+## ความเข้ากันได้
+ทางทีมพัฒนาได้ทำการทดสบพบว่า library สามารถใช้ได้กับอุปกรณ์ต่อไปนี้ (อาจมีมากกว่านี้)
+- ESP8266-01
+- ESP8266-12E
+- NodeMCU v1 และ v2
+
 ## การติดตั้ง
 * ดาวน์โหลด Arduino IDE 1.6.5 จาก https://www.arduino.cc/en/Main/Software
 *  หลังจากติดตั้งเสร็จ เปิด Preferences
@@ -16,9 +22,12 @@ microgear-esp8266-arduino คือ client library ที่ทำหน้า�
 ```c++
 #include <AuthClient.h>
 #include <MicroGear.h>
+#include <MQTTClient.h>
+#include <SHA1.h>
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <EEPROM.h>
+#include <MicroGear.h>
 
 const char* ssid     = <WIFI_SSID>;
 const char* password = <WIFI_KEY>;
@@ -31,39 +40,43 @@ const char* password = <WIFI_KEY>;
 WiFiClient client;
 AuthClient *authclient;
 
-void msghandler(char *topic, uint8_t* msg, unsigned int msglen) {
+int timer = 0;
+MicroGear microgear(client);
+
+void onMsghandler(char *topic, uint8_t* msg, unsigned int msglen) {
   Serial.print("Incoming message --> ");
-  Serial.print(topic);
-  for (int i=0; i<msglen; i++)
-    Serial.print((char)msg[i]);
-  Serial.println();  
+  msg[msglen] = '\0';
+  Serial.println((char *)msg);
 }
 
-void foundgear(char *attribute, uint8_t* msg, unsigned int msglen) {
+void onFoundgear(char *attribute, uint8_t* msg, unsigned int msglen) {
   Serial.print("Found new member --> ");
   for (int i=0; i<msglen; i++)
     Serial.print((char)msg[i]);
   Serial.println();  
 }
 
-void lostgear(char *attribute, uint8_t* msg, unsigned int msglen) {
+void onLostgear(char *attribute, uint8_t* msg, unsigned int msglen) {
   Serial.print("Lost member --> ");
   for (int i=0; i<msglen; i++)
     Serial.print((char)msg[i]);
-  Serial.println();  
+  Serial.println();
 }
 
-int timer = 0;
-MicroGear microgear(client);
+void onConnected(char *attribute, uint8_t* msg, unsigned int msglen) {
+  Serial.println("Connected to NETPIE...");
+  microgear.setName("mygear");
+}
+
 
 void setup() {
-    Serial.begin(115200);
-
     /* Event listener */
-    microgear.on(MESSAGE,msghandler);
-    microgear.on(PRESENT,foundgear);
-    microgear.on(ABSENT,lostgear);
+    microgear.on(MESSAGE,onMsghandler);
+    microgear.on(PRESENT,onFoundgear);
+    microgear.on(ABSENT,onLostgear);
+    microgear.on(CONNECTED,onConnected);
 
+    Serial.begin(115200);
     Serial.println("Starting...");
 
     if (WiFi.begin(ssid, password)) {
@@ -81,7 +94,6 @@ void setup() {
       //microgear.resetToken();
       microgear.init(GEARKEY,GEARSECRET,SCOPE);
       microgear.connect(APPID);
-      microgear.setName("mygear");
     }
 }
 
