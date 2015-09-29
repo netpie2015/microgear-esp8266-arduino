@@ -4,6 +4,7 @@ unsigned char topicprefixlen;
 void (* cb_message)(char*, uint8_t*,unsigned int);
 void (* cb_present)(char*, uint8_t*,unsigned int);
 void (* cb_absent)(char*, uint8_t*,unsigned int);
+void (* cb_connected)(char*, uint8_t*,unsigned int);
 
 void msgCallback(char* topic, uint8_t* payload, unsigned int length) {
     /* remove /appid/ */
@@ -107,6 +108,8 @@ void MicroGear::on(unsigned char event, void (* callback)(char*, uint8_t*,unsign
                 if (connected())
                     subscribe("/&absent");
                 break;
+        case CONNECTED : 
+                if (callback) cb_connected = callback;
     }
 }
 
@@ -354,6 +357,9 @@ boolean MicroGear::connect(char* appid) {
 
                     sprintf(buff,"/&id/%s/#",token);
                     subscribe(buff);
+
+                    cb_connected(NULL,NULL,0);
+
 
 					break;
             case CLIENT_NOTCONNECT :

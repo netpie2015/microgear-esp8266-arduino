@@ -54,7 +54,8 @@
 #define MESSAGE                    1
 #define PRESENT                    2
 #define ABSENT                     3
-#define CALLBACK                   4
+#define CONNECTED                  4
+#define CALLBACK                   5
 
 
 class MicroGear {

@@ -18,37 +18,43 @@ const char* password = <WIFI_KEY>;
 WiFiClient client;
 AuthClient *authclient;
 
-void msghandler(char *topic, uint8_t* msg, unsigned int msglen) {
+int timer = 0;
+MicroGear microgear(client);
+
+void onMsghandler(char *topic, uint8_t* msg, unsigned int msglen) {
   Serial.print("Incoming message --> ");
-  Serial.print(topic);
-  for (int i=0; i<msglen; i++)
-    Serial.print((char)msg[i]);
-  Serial.println();  
+  msg[msglen] = '\0';
+  Serial.println((char *)msg);
 }
 
-void foundgear(char *attribute, uint8_t* msg, unsigned int msglen) {
+void onFoundgear(char *attribute, uint8_t* msg, unsigned int msglen) {
   Serial.print("Found new member --> ");
   for (int i=0; i<msglen; i++)
     Serial.print((char)msg[i]);
   Serial.println();  
 }
 
-void lostgear(char *attribute, uint8_t* msg, unsigned int msglen) {
+void onLostgear(char *attribute, uint8_t* msg, unsigned int msglen) {
   Serial.print("Lost member --> ");
   for (int i=0; i<msglen; i++)
     Serial.print((char)msg[i]);
-  Serial.println();  
+  Serial.println();
 }
 
-int timer = 0;
-MicroGear microgear(client);
+void onConnected(char *attribute, uint8_t* msg, unsigned int msglen) {
+  Serial.println("Connected to NETPIE...");
+  microgear.setName("mygear");
+}
+
 
 void setup() {
     /* Event listener */
-    microgear.on(MESSAGE,msghandler);
-    microgear.on(PRESENT,foundgear);
-    microgear.on(ABSENT,lostgear);
+    microgear.on(MESSAGE,onMsghandler);
+    microgear.on(PRESENT,onFoundgear);
+    microgear.on(ABSENT,onLostgear);
+    microgear.on(CONNECTED,onConnected);
 
+    Serial.begin(115200);
     Serial.println("Starting...");
 
     if (WiFi.begin(ssid, password)) {
@@ -66,7 +72,6 @@ void setup() {
       //microgear.resetToken();
       microgear.init(GEARKEY,GEARSECRET,SCOPE);
       microgear.connect(APPID);
-      microgear.setName("mygear");
     }
 }
 
