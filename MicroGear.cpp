@@ -10,13 +10,13 @@ void msgCallback(char* topic, uint8_t* payload, unsigned int length) {
     char* rtopic =  topic+topicprefixlen+1;
 
     /* if a control message */
-    if (*rtopic == '@') {
-        if (strcmp(rtopic,"@present") == 0) {
+    if (*rtopic == '&') {
+        if (strcmp(rtopic,"&present") == 0) {
             if (cb_present) {
                 cb_present("present",payload,length);
             }
         }
-        else if (strcmp(rtopic,"@absent") == 0) {
+        else if (strcmp(rtopic,"&absent") == 0) {
             if (cb_present) {
                 cb_absent("absent",payload,length);
             }
@@ -100,12 +100,12 @@ void MicroGear::on(unsigned char event, void (* callback)(char*, uint8_t*,unsign
         case PRESENT : 
                 if (callback) cb_present = callback;
                 if (connected())
-                    subscribe("/@present");
+                    subscribe("/&present");
                 break;
         case ABSENT : 
                 if (callback) cb_absent = callback;
                 if (connected())
-                    subscribe("/@absent");
+                    subscribe("/&absent");
                 break;
     }
 }
@@ -348,9 +348,12 @@ boolean MicroGear::connect(char* appid) {
 			case CLIENT_CONNECTED :
 				    backoff = MINBACKOFFTIME;
                     if (cb_present)
-                        subscribe("/@present");
+                        subscribe("/&present");
                     if (cb_absent)
-                        subscribe("/@absent");
+                        subscribe("/&absent");
+
+                    sprintf(buff,"/&id/%s/#",token);
+                    subscribe(buff);
 
 					break;
             case CLIENT_NOTCONNECT :
