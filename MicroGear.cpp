@@ -18,7 +18,7 @@ void msgCallback(char* topic, uint8_t* payload, unsigned int length) {
             }
         }
         else if (strcmp(rtopic,"&absent") == 0) {
-            if (cb_present) {
+            if (cb_absent) {
                 cb_absent("absent",payload,length);
             }
         }
@@ -90,6 +90,9 @@ MicroGear::MicroGear(Client& netclient ) {
 
     this->eepromoffset = 0;
     cb_message = NULL;
+    cb_connected = NULL;
+    cb_absent = NULL;
+    cb_present = NULL;
     eepromready = false;
 }
 
@@ -383,8 +386,8 @@ boolean MicroGear::connect(char* appid) {
                     sprintf(buff,"/&id/%s/#",token);
                     subscribe(buff);
 
-                    cb_connected(NULL,NULL,0);
-
+                    if (cb_connected)
+                        cb_connected(NULL,NULL,0);
 
 					break;
             case CLIENT_NOTCONNECT :
