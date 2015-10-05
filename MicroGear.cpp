@@ -24,43 +24,50 @@ void msgCallback(char* topic, uint8_t* payload, unsigned int length) {
         }
     }
     else if (cb_message) {
-    	cb_message(topic,payload,length);  
+        cb_message(topic,payload,length);  
     }
 }
 
 bool MicroGear::clientReadln(Client* client, char *buffer, size_t buflen) {
-		size_t pos = 0;
-		while (true) {
-			while (true) {
-				uint8_t byte = client->read();
-				if (byte == '\n') {
-					// EOL found.
-					if (pos < buflen) {
-						if (pos > 0 && buffer[pos - 1] == '\r')
-						pos--;
-						buffer[pos] = '\0';
-					}
-					else {
-						buffer[buflen - 1] = '\0';
-					}
-					return true;
-				}
-				if (pos < buflen)
-				buffer[pos++] = byte;
-			}
-		}
-		return false;
+    size_t pos = 0;
+    while (true) {
+        while (true) {
+            uint8_t byte = client->read();
+            if (byte == '\n') {
+                // EOF found.
+                if (pos < buflen) {
+                    if (pos > 0 && buffer[pos - 1] == '\r')
+                    pos--;
+                    buffer[pos] = '\0';
+                }
+                else {
+                    buffer[buflen - 1] = '\0';
+                }
+                return true;
+            }
+
+            if (byte != 255) {
+                if (pos < buflen) buffer[pos++] = byte;
+            }
+            else{
+                buffer[pos++] = '\0';
+                return true; 
+            } 
+        }
+    }
+    return false;
 }
 
 bool MicroGear::getHTTPReply(Client *client, char *buff, size_t buffsize) {
-	char pline = 0;
-	while (true) {
-		clientReadln(client, buff, buffsize);
-		if (pline > 0) {
-			return true;
-		}
-		if (strlen(buff)<6) pline++;
-	}
+    char pline = 0;
+    buff[0] = '\0';
+    while (true) {
+        clientReadln(client, buff, buffsize);
+        if (pline > 0) {
+            return true;
+        }
+        if (strlen(buff)<1) pline++;
+    }
 }
 
 void MicroGear::syncTime(Client *client, unsigned long *bts) {
@@ -177,12 +184,12 @@ void MicroGear::getToken(char* token, char* tokensecret, char *endpoint) {
 
     readEEPROM(state,EEPROM_STATEOFFSET,1);
 
-	#ifdef DEBUG_H
-		Serial.print("Token rom state == ");
-		Serial.print(state);
+    #ifdef DEBUG_H
+        Serial.print("Token rom state == ");
+        Serial.print(state);
         Serial.println(";");
-	#endif
-	delay(500);
+    #endif
+    delay(500);
     // if token is null  --> get a requesttoken
     if (*state != EEPROM_STATE_REQ && *state != EEPROM_STATE_ACC) {
 
@@ -191,7 +198,7 @@ void MicroGear::getToken(char* token, char* tokensecret, char *endpoint) {
         #endif
 
         do {
-		    delay(2000);
+            delay(2000);
             if (authclient->connect()) {
 
                 #ifdef DEBUG_H
@@ -199,10 +206,10 @@ void MicroGear::getToken(char* token, char* tokensecret, char *endpoint) {
                 #endif
 
                 authstatus = authclient->getGearToken(_REQUESTTOKEN,rtoken,rtokensecret,endpoint,gearkey,gearsecret,scope,NULL,NULL);
-				delay(1000);
-				#ifdef DEBUG_H
-					Serial.println(authstatus); Serial.println(rtoken); Serial.println(rtokensecret); Serial.println(endpoint);
-				#endif
+                delay(1000);
+                #ifdef DEBUG_H
+                    Serial.println(authstatus); Serial.println(rtoken); Serial.println(rtokensecret); Serial.println(endpoint);
+                #endif
                 authclient->stop();
 
                 if (authstatus == 200) {
@@ -211,12 +218,12 @@ void MicroGear::getToken(char* token, char* tokensecret, char *endpoint) {
                     writeEEPROM(rtoken,EEPROM_TOKENOFFSET,TOKENSIZE);
                     writeEEPROM(rtokensecret,EEPROM_TOKENSECRETOFFSET,TOKENSECRETSIZE);
 
-					#ifdef DEBUG_H
-						Serial.println("@ Write Request Token");
-		                Serial.println(state);
-			            Serial.println(rtoken);
-				        Serial.println(rtokensecret);
-					#endif
+                    #ifdef DEBUG_H
+                        Serial.println("@ Write Request Token");
+                        Serial.println(state);
+                        Serial.println(rtoken);
+                        Serial.println(rtokensecret);
+                    #endif
                 }
             }
             else {
@@ -233,7 +240,7 @@ void MicroGear::getToken(char* token, char* tokensecret, char *endpoint) {
 
         readEEPROM(rtoken,EEPROM_TOKENOFFSET,TOKENSIZE);
         readEEPROM(rtokensecret,EEPROM_TOKENSECRETOFFSET,TOKENSECRETSIZE);
-		
+        
         do {
             delay(1000);
             authstatus = 0;
@@ -243,7 +250,7 @@ void MicroGear::getToken(char* token, char* tokensecret, char *endpoint) {
                         Serial.println("authclient is connected, get access token");
                     #endif
                     authstatus = authclient->getGearToken(_ACCESSTOKEN,token,tokensecret,endpoint,gearkey,gearsecret,"",rtoken,rtokensecret);
-    				delay(1000);
+                    delay(1000);
                     authclient->stop();
                     delay(1000);
                 }
@@ -255,7 +262,9 @@ void MicroGear::getToken(char* token, char* tokensecret, char *endpoint) {
                 }
             }
 
-            Serial.println(authstatus);
+            #ifdef DEBUG_H
+                Serial.println(authstatus);
+            #endif
             if (authstatus == 200) {
                 *state = EEPROM_STATE_ACC;
                 writeEEPROM(state,EEPROM_STATEOFFSET,1);
@@ -271,23 +280,23 @@ void MicroGear::getToken(char* token, char* tokensecret, char *endpoint) {
                     if (revokecode[i]=='/') revokecode[i] = '_';
                 writeEEPROM(revokecode,EEPROM_REVOKECODEOFFSET,REVOKECODESIZE);
 
-				char *p = endpoint+12;
-				while (*p != '\0') {
-					if (*p == '%') {
-						*p = *(p+1)>='A'?16*(*(p+1)-'A'+10):16*(*(p+1)-'0');
-						*p += *(p+2)>='A'?(*(p+2)-'A'+10):(*(p+2)-'0');
-						strcpy(p+1,p+3);
-					}
-					p++;
-				}
-				writeEEPROM(endpoint+12,EEPROM_ENDPOINTSOFFSET,MAXENDPOINTLENGTH);
+                char *p = endpoint+12;
+                while (*p != '\0') {
+                    if (*p == '%') {
+                        *p = *(p+1)>='A'?16*(*(p+1)-'A'+10):16*(*(p+1)-'0');
+                        *p += *(p+2)>='A'?(*(p+2)-'A'+10):(*(p+2)-'0');
+                        strcpy(p+1,p+3);
+                    }
+                    p++;
+                }
+                writeEEPROM(endpoint+12,EEPROM_ENDPOINTSOFFSET,MAXENDPOINTLENGTH);
             }
             else {
                 if (authstatus != 401) {
-					#ifdef DEBUG_H
-						Serial.println("Return code is not 401");
-						Serial.println(authstatus);
-					#endif
+                    #ifdef DEBUG_H
+                        Serial.println("Return code is not 401");
+                        Serial.println(authstatus);
+                    #endif
 
                     /* request token error e.g. revoked */
                     *state = EEPROM_STATE_NUL;
@@ -296,11 +305,11 @@ void MicroGear::getToken(char* token, char* tokensecret, char *endpoint) {
                 }
             }
         }while (*state == EEPROM_STATE_REQ);
-	        // reset accesstoken retry counter
+            // reset accesstoken retry counter
         retry = RETRY;
-		#ifdef DEBUG_H
-	        Serial.println(authstatus); Serial.println(token); Serial.println(tokensecret); Serial.println(endpoint);
-		#endif
+        #ifdef DEBUG_H
+            Serial.println(authstatus); Serial.println(token); Serial.println(tokensecret); Serial.println(endpoint);
+        #endif
     }
 
     //if token is a requesttoken --> get an accesstoken
@@ -316,7 +325,7 @@ void MicroGear::getToken(char* token, char* tokensecret, char *endpoint) {
         #endif
         delay(2000);
     }
-	authclient->stop();
+    authclient->stop();
 }
 
 boolean MicroGear::connect(char* appid) {
@@ -327,7 +336,7 @@ boolean MicroGear::connect(char* appid) {
     char tokensecret[TOKENSECRETSIZE+1];
     char endpoint[MAXENDPOINTLENGTH+1];
 
-	syncTime(sockclient, &bootts);
+    syncTime(sockclient, &bootts);
 
     #ifdef DEBUG_H
         Serial.print("Time stamp : ");
@@ -338,10 +347,10 @@ boolean MicroGear::connect(char* appid) {
     topicprefixlen = strlen(appid)+1;
 
     if (authclient) delete(authclient);
-	authclient = new AuthClient(*sockclient);
+    authclient = new AuthClient(*sockclient);
     authclient->init(appid,scope,bootts);
     getToken(token,tokensecret,endpoint);
-	delete(authclient);
+    delete(authclient);
     authclient = NULL;
 
     /* generate one-time user/password */
@@ -352,32 +361,32 @@ boolean MicroGear::connect(char* appid) {
     
     if (*token && *tokensecret) {
 
-		#ifdef DEBUG_H
-			Serial.println("Going to connect to MQTT broker");
-			Serial.println(token);
-			Serial.println(username);
-			Serial.println(password);
-			Serial.println(endpoint);
-		#endif
+        #ifdef DEBUG_H
+            Serial.println("Going to connect to MQTT broker");
+            Serial.println(token);
+            Serial.println(username);
+            Serial.println(password);
+            Serial.println(endpoint);
+        #endif
 
-		char *p = endpoint;
-		while (*p!='\0') {
-			if (*p == ':') {
-				*p = '\0';
-				p++;
-				break;
-			}
-			p++;
-		}
+        char *p = endpoint;
+        while (*p!='\0') {
+            if (*p == ':') {
+                *p = '\0';
+                p++;
+                break;
+            }
+            p++;
+        }
 
-		mqttclient = new PubSubClient(endpoint, *p=='\0'?1883:atoi(p), msgCallback, *sockclient);
+        mqttclient = new PubSubClient(endpoint, *p=='\0'?1883:atoi(p), msgCallback, *sockclient);
 
-		delay(500);
-		
-	    constate = this->mqttclient->connect(token,username+TOKENSIZE+1,password);
-		switch (constate) {
-			case CLIENT_CONNECTED :
-				    backoff = MINBACKOFFTIME;
+        delay(500);
+        
+        constate = this->mqttclient->connect(token,username+TOKENSIZE+1,password);
+        switch (constate) {
+            case CLIENT_CONNECTED :
+                    backoff = MINBACKOFFTIME;
                     if (cb_present)
                         subscribe("/&present");
                     if (cb_absent)
@@ -389,33 +398,33 @@ boolean MicroGear::connect(char* appid) {
                     if (cb_connected)
                         cb_connected(NULL,NULL,0);
 
-					break;
-            case CLIENT_NOTCONNECT :
-	                if (backoff < MAXBACKOFFTIME) backoff = 2*backoff;
-		            delay(backoff);
-			        break;
-            case CLIENT_REJECTED :
-					#ifdef DEBUG_H
-                        Serial.println("mqtt connection rejected");
-						Serial.println(retry);
-					#endif
-		            if (--retry <= 0) {
-			            resetToken();
-						#ifdef DEBUG_H
-					        Serial.println("Reset token");
-						#endif
-					}
                     break;
-	    }
-		return constate;
+            case CLIENT_NOTCONNECT :
+                    if (backoff < MAXBACKOFFTIME) backoff = 2*backoff;
+                    delay(backoff);
+                    break;
+            case CLIENT_REJECTED :
+                    #ifdef DEBUG_H
+                        Serial.println("mqtt connection rejected");
+                        Serial.println(retry);
+                    #endif
+                    if (--retry <= 0) {
+                        resetToken();
+                        #ifdef DEBUG_H
+                            Serial.println("Reset token");
+                        #endif
+                    }
+                    break;
+        }
+        return constate;
     }
     else return false;
 }
 
 boolean MicroGear::connected() {
-	if (constate == CLIENT_NOTCONNECT) return CLIENT_NOTCONNECT;
-	else return this->mqttclient->connected();
-	//return this->sockclient->connected();
+    if (constate == CLIENT_NOTCONNECT) return CLIENT_NOTCONNECT;
+    else return this->mqttclient->connected();
+    //return this->sockclient->connected();
 }
 
 void MicroGear::subscribe(char* topic) {
@@ -451,14 +460,14 @@ void MicroGear::setName(char* gearname) {
     }
     strcpy(top,"/gearname/");
     strcat(top,gearname);
-	this->gearname = gearname;
+    this->gearname = gearname;
 
     subscribe(top);
 }
 
 void MicroGear::chat(char* targetgear, char* message) {
     char top[MAXTOPICSIZE];
-	sprintf(top,"/%s/gearname/%s",appid,targetgear);
+    sprintf(top,"/%s/gearname/%s",appid,targetgear);
     mqttclient->publish(top, message);
 }
 
@@ -475,7 +484,7 @@ int MicroGear::init(char* gearkey,char* gearsecret,char* scope) {
 }
 
 void MicroGear::loop() {
-	this->mqttclient->loop();
+    this->mqttclient->loop();
 }
 
 void MicroGear::setToken(char* token,char* tokensecret) {

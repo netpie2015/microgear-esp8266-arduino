@@ -22,28 +22,28 @@ int timer = 0;
 MicroGear microgear(client);
 
 void onMsghandler(char *topic, uint8_t* msg, unsigned int msglen) {
-  Serial.print("Incoming message --> ");
-  msg[msglen] = '\0';
-  Serial.println((char *)msg);
+    Serial.print("Incoming message --> ");
+    msg[msglen] = '\0';
+    Serial.println((char *)msg);
 }
 
 void onFoundgear(char *attribute, uint8_t* msg, unsigned int msglen) {
-  Serial.print("Found new member --> ");
-  for (int i=0; i<msglen; i++)
-    Serial.print((char)msg[i]);
-  Serial.println();  
+    Serial.print("Found new member --> ");
+    for (int i=0; i<msglen; i++)
+        Serial.print((char)msg[i]);
+    Serial.println();  
 }
 
 void onLostgear(char *attribute, uint8_t* msg, unsigned int msglen) {
-  Serial.print("Lost member --> ");
-  for (int i=0; i<msglen; i++)
-    Serial.print((char)msg[i]);
-  Serial.println();
+    Serial.print("Lost member --> ");
+    for (int i=0; i<msglen; i++)
+        Serial.print((char)msg[i]);
+    Serial.println();
 }
 
 void onConnected(char *attribute, uint8_t* msg, unsigned int msglen) {
-  Serial.println("Connected to NETPIE...");
-  microgear.setName("mygear");
+    Serial.println("Connected to NETPIE...");
+    microgear.setName("mygear");
 }
 
 
@@ -59,40 +59,40 @@ void setup() {
 
     if (WiFi.begin(ssid, password)) {
 
-      while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-      }
+        while (WiFi.status() != WL_CONNECTED) {
+            delay(500);
+            Serial.print(".");
+    }
 
-      Serial.println("WiFi connected");  
-      Serial.println("IP address: ");
-      Serial.println(WiFi.localIP());
+    Serial.println("WiFi connected");  
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
 
-	  //uncomment the line below if you want to reset token -->
-      //microgear.resetToken();
-      microgear.init(GEARKEY,GEARSECRET,SCOPE);
-      microgear.connect(APPID);
+	//uncomment the line below if you want to reset token -->
+    //microgear.resetToken();
+    microgear.init(GEARKEY,GEARSECRET,SCOPE);
+        microgear.connect(APPID);
     }
 }
 
 void loop() {
-  if (microgear.connected()) {
-    Serial.println("connected");
-    microgear.loop();
-    if (timer >= 1000) {
-        Serial.println("Publish...");
-        microgear.chat("mygear","Hello");
-        timer = 0;
-    } 
-    else timer += 100;
-  }
-  else {
-      Serial.println("connection lost, reconnect...");
-      if (timer >= 5000) {
-      microgear.connect(APPID);
-      timer = 0;
+    if (microgear.connected()) {
+        Serial.println("connected");
+        microgear.loop();
+        if (timer >= 1000) {
+            Serial.println("Publish...");
+            microgear.chat("mygear","Hello");
+            timer = 0;
+        } 
+        else timer += 100;
     }
-    else timer += 100;
-  }
-  delay(100);
+    else {
+        Serial.println("connection lost, reconnect...");
+        if (timer >= 5000) {
+            microgear.connect(APPID);
+            timer = 0;
+        }
+        else timer += 100;
+    }
+    delay(100);
 }
