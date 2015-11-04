@@ -89,6 +89,7 @@ MicroGear::MicroGear(Client& netclient ) {
     sockclient = &netclient;
     constate = CLIENT_NOTCONNECT;
     authclient = NULL;
+	mqttclient = NULL;
 
     this->token = NULL;
     this->tokensecret = NULL;
@@ -379,8 +380,8 @@ boolean MicroGear::connect(char* appid) {
             p++;
         }
 
+        if (mqttclient) delete(mqttclient);
         mqttclient = new PubSubClient(endpoint, *p=='\0'?1883:atoi(p), msgCallback, *sockclient);
-
         delay(500);
         
         constate = this->mqttclient->connect(token,username+TOKENSIZE+1,password);
