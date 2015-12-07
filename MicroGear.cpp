@@ -347,6 +347,14 @@ boolean MicroGear::connect(char* appid) {
     this->appid = appid;
     topicprefixlen = strlen(appid)+1;
 
+    if (mqttclient) {
+        // recently disconnected with code 4
+        if (mqttclient->state() == 4) {
+            resetToken();
+        }
+        delete(mqttclient);
+    }
+
     if (authclient) delete(authclient);
     authclient = new AuthClient(*sockclient);
     authclient->init(appid,scope,bootts);
@@ -380,7 +388,6 @@ boolean MicroGear::connect(char* appid) {
             p++;
         }
 
-        if (mqttclient) delete(mqttclient);
         mqttclient = new PubSubClient(endpoint, *p=='\0'?1883:atoi(p), msgCallback, *sockclient);
         delay(500);
         
@@ -502,4 +509,8 @@ void MicroGear::strcat(char* a, char* b) {
     char *p;
     p = a + strlen(a);
     strcpy(p,b);
+}
+
+int MicroGear::state() {
+    return this->mqttclient->state();
 }

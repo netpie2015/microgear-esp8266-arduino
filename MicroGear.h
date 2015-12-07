@@ -17,6 +17,7 @@
 #include "AuthClient.h"
 //#include "debug.h"
 
+
 #define GEARTIMEADDRESS "ga.netpie.io"
 #define GEARTIMEPORT 8080
 
@@ -109,6 +110,7 @@ class MicroGear {
 		void strcat(char*, char*);
 		void on(unsigned char,void (* callback)(char*, uint8_t*,unsigned int));
 		void setEEPROMOffset(int);
+		int state();
 };
 
 #endif
