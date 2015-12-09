@@ -469,6 +469,9 @@ void MicroGear::publish(char* topic, char* message) {
     mqttclient->publish(top, message);
 }
 
+/*
+  setName() is deprecated 
+*/
 void MicroGear::setName(char* gearname) {
     char top[MAXTOPICSIZE];
     if (this->gearname) {
@@ -481,6 +484,14 @@ void MicroGear::setName(char* gearname) {
     this->gearname = gearname;
 
     subscribe(top);
+}
+
+void MicroGear::setAlias(char* gearalias) {
+    char top[MAXTOPICSIZE];
+    strcpy(top,"/@setalias/");
+    strcat(top,gearalias);
+    this->gearalias = gearalias;
+    publish(top,"");
 }
 
 void MicroGear::chat(char* targetgear, char* message) {

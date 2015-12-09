@@ -72,13 +72,13 @@ class MicroGear {
         char* gearsecret;
         char* gearalias;
         char* scope;
-		char gearid[MAXGEARIDSIZE];
 		char* app_topic;
 		char* group_topic;
         char* token;
         char* tokensecret;
         char* endpoint;
-		char mqtt_client_type;
+		char  gearid[MAXGEARIDSIZE];
+		char  mqtt_client_type;
 		unsigned long bootts;
 		int eepromoffset;
 		bool eepromready;
@@ -101,6 +101,7 @@ class MicroGear {
 		int constate;
 		MicroGear(Client&);
 		void setName(char*);
+		void setAlias(char*);
 		boolean connect(char*);
 		boolean connected();
 		void publish(char*, char*);
