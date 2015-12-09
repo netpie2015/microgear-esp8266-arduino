@@ -5,8 +5,7 @@
 #include "SHA1.h"
 #include "debug.h"
 
-//#define GEARAUTHHOST "ga.netpie.io"
-#define GEARAUTHHOST "203.185.97.90"
+#define GEARAUTHHOST "ga.netpie.io"
 #define GEARAUTHPORT 8080
 
 #define MGREV "E8A1a"
