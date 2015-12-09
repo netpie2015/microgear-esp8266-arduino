@@ -500,6 +500,14 @@ void MicroGear::chat(char* targetgear, char* message) {
     mqttclient->publish(top, message);
 }
 
+int MicroGear::init(char* gearkey,char* gearsecret) {
+    init(gearkey,gearsecret,"","");
+}
+
+int MicroGear::init(char* gearkey,char* gearsecret,char* gearalias) {
+    init(gearkey,gearsecret,gearalias,"");
+}
+
 int MicroGear::init(char* gearkey,char* gearsecret,char* gearalias, char* scope) {
     //this->gearid = gearkey;
     this->gearkey = gearkey;

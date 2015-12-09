@@ -192,7 +192,8 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
         strcat(buff,scope);
 
         verifier[0] = '\0';
-        if (gearalias) {
+        // oauth verifier must longer tahn 2 characters
+        if (strlen(gearalias)>2) {
             strcat(verifier,gearalias);
         }
         else {

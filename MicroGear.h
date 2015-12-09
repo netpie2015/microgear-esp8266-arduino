@@ -111,6 +111,8 @@ class MicroGear {
 		void loop();
         void resetToken();
         void setToken(char*, char*, char*);
+        int init(char*, char*);
+        int init(char*, char*, char*);
         int init(char*, char*, char*, char*);
 		void strcat(char*, char*);
 		void on(unsigned char,void (* callback)(char*, uint8_t*,unsigned int));
