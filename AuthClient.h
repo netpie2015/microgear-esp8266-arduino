@@ -3,7 +3,7 @@
 
 #include "Client.h"
 #include "SHA1.h"
-#include "debug.h"
+//#include "debug.h"
 
 #define GEARAUTHHOST "ga.netpie.io"
 #define GEARAUTHPORT 8080
