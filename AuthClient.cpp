@@ -22,9 +22,6 @@ void AuthClient::init(char* appid, char* scope, unsigned long bts) {
 }
 
 bool AuthClient::connect() {
-
-Serial.println(GEARAUTHHOST);
-
     if (client->connect(GEARAUTHHOST,GEARAUTHPORT)) {
         return true;
     }
@@ -370,10 +367,6 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
                                 return httpstatus;
                             }
                     }
-
-
-
-
             }
             else {
                 return 0;
