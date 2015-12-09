@@ -22,6 +22,9 @@ void AuthClient::init(char* appid, char* scope, unsigned long bts) {
 }
 
 bool AuthClient::connect() {
+
+Serial.println(GEARAUTHHOST);
+
     if (client->connect(GEARAUTHHOST,GEARAUTHPORT)) {
         return true;
     }
@@ -134,8 +137,7 @@ void AuthClient::addParam(char* buff, char* key, char* value, bool first) {
     encode(strtail(buff),value);
 }
 
-int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* endpoint, char* gearkey, char* gearsecret, char* scope, char* rtoken, char* rtokensecret) {
-
+int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* endpoint, char* gearkey, char* gearsecret, char* gearalias, char* scope, char* rtoken, char* rtokensecret) {
         #ifdef DEBUG_H
             Serial.println("Enter getGearToken()..");
         #endif
@@ -145,6 +147,7 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
         char buff[MAXHEADERLINESIZE];
         char signbase[MAXSIGNATUREBASELENGTH];
         char nonce[NONCESIZE+1];
+        char verifier[32+1];
 
          #define OAUTH_CALLBACK  "oauth_callback="
          #define OAUTH_CONSUMER_KEY  "oauth_consumer_key="
@@ -164,12 +167,12 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
         sprintf(strtail(signbase),"%s%%3A%d",GEARAUTHHOST,GEARAUTHPORT);
 
         if (mode == _REQUESTTOKEN) {
-            writeln("POST /oauth/request_token HTTP/1.1");
-            strcat(signbase,"%2Foauth%2Frequest_token&");
+            writeln("POST /api/rtoken HTTP/1.1");
+            strcat(signbase,"%2Fapi%2Frtoken&");
         }
         else {
-            writeln("POST /oauth/access_token HTTP/1.1");
-            strcat(signbase,"%2Foauth%2Faccess_token&");
+            writeln("POST /api/atoken HTTP/1.1");
+            strcat(signbase,"%2Fapi%2Fatoken&");
         }
         sprintf(buff,"Host: %s:%d",GEARAUTHHOST,GEARAUTHPORT);
         writeln(buff);
@@ -182,13 +185,25 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
         append(buff,OAUTH_CALLBACK,0);
         strcat(buff,"\"appid%3D");
         strcat(buff,appid);
-        write(buff);
+
+        strcat(buff,"%26mgrev%3D");
+        strcat(buff,MGREV);
+        write(buff);        
 
         *buff = '\0';
         strcat(buff,"%26scope%3D");
         strcat(buff,scope);
+
+        verifier[0] = '\0';
+        if (gearalias) {
+            strcat(verifier,gearalias);
+        }
+        else {
+            strcat(verifier,MGREV);
+        }
+
         strcat(buff,"%26verifier%3D");
-        strcat(buff,VERIFIER);
+        strcat(buff,verifier);
         strcat(buff,"\",");
         write(buff);
 
@@ -199,8 +214,9 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
         /*add key value*/
         buff[0] = '\0';
         addParam(buff,"appid",appid,1);
+        addParam(buff,"mgrev",MGREV,0);
         addParam(buff,"scope",scope,0);
-        addParam(buff,"verifier",VERIFIER,0);
+        addParam(buff,"verifier",verifier,0);
         encode(strtail(signbase),buff);
 
         //OAUTH_CONSUMER_KEY
@@ -255,7 +271,7 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
         strcat(buff,",");
         write(buff);
 
-        if (rtoken) {
+        if (rtoken) {   
             //OAUTH_TOKEN
             *buff = '\0';
             append(buff,(char *)OAUTH_TOKEN,0);
@@ -269,7 +285,7 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
             //OAUTH_VERIFIER
             *buff = '\0';
             append(buff,(char *)OAUTH_VERIFIER,0);
-            sprintf(strtail(buff),"\"%s\"",VERIFIER);
+            sprintf(strtail(buff),"\"%s\"",verifier);
             strcat(signbase,"%26"); //&
             encode(strtail(signbase),buff);
 

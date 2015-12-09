@@ -11,8 +11,9 @@ const char* ssid     = <WIFI_SSID>;
 const char* password = <WIFI_KEY>;
 
 #define APPID       <APPID>
-#define GEARKEY     <APPKEY>
-#define GEARSECRET  <APPSECRET>
+#define KEY     <APPKEY>
+#define SECRET  <APPSECRET>
+#define ALIAS   "esp8266"
 #define SCOPE       ""
 
 WiFiClient client;
@@ -70,9 +71,8 @@ void setup() {
 
 	//uncomment the line below if you want to reset token -->
     //microgear.resetToken();
-    microgear.init(GEARKEY,GEARSECRET,SCOPE);
-        microgear.connect(APPID);
-    }
+    microgear.init(KEY,SECRET,ALIAS,SCOPE);
+    microgear.connect(APPID);
 }
 
 void loop() {

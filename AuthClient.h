@@ -3,11 +3,14 @@
 
 #include "Client.h"
 #include "SHA1.h"
-//#include "debug.h"
+#include "debug.h"
 
-#define GEARAUTHHOST "ga.netpie.io"
+//#define GEARAUTHHOST "ga.netpie.io"
+#define GEARAUTHHOST "203.185.97.90"
 #define GEARAUTHPORT 8080
-#define VERIFIER "1234"
+
+#define MGREV "E8A1a"
+#define MAXVERIFIERSIZE         32
 #define TOKENSIZE               16
 #define TOKENSECRETSIZE         32
 #define MAXHEADERLINESIZE       350
@@ -30,7 +33,7 @@ class AuthClient {
         void write(char*);
         void writeln(char*);
         bool readln(char*, size_t);
-        int getGearToken(char, char*, char*, char*, char*, char*, char*, char*, char*);
+        int getGearToken(char, char*, char*, char*, char*, char*, char*, char*, char*, char*);
     protected:
     private:
         Client* client;

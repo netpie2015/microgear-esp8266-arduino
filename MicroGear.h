@@ -15,7 +15,7 @@
 #include <EEPROM.h>
 #include "SHA1.h"
 #include "AuthClient.h"
-//#include "debug.h"
+#include "debug.h"
 
 
 #define GEARTIMEADDRESS "ga.netpie.io"
@@ -29,6 +29,7 @@
 #define MAXGEARIDSIZE              64
 #define MAXTOPICSIZE               128
 
+#define KEYSIZE                    16
 #define TOKENSIZE                  16
 #define TOKENSECRETSIZE            32
 #define USERNAMESIZE               65
@@ -38,11 +39,13 @@
 #define EEPROM_STATE_NUL           65
 #define EEPROM_STATE_REQ           66
 #define EEPROM_STATE_ACC           67
+
 #define EEPROM_STATEOFFSET         0
-#define EEPROM_TOKENOFFSET         1
-#define EEPROM_TOKENSECRETOFFSET   17
-#define EEPROM_REVOKECODEOFFSET    49
-#define EEPROM_ENDPOINTSOFFSET     77
+#define EEPROM_KEYOFFSET           1
+#define EEPROM_TOKENOFFSET         17
+#define EEPROM_TOKENSECRETOFFSET   33
+#define EEPROM_REVOKECODEOFFSET    65
+#define EEPROM_ENDPOINTSOFFSET     93
 
 #define MICROGEAR_NOTCONNECT       0
 #define MICROGEAR_CONNECTED        1
@@ -67,6 +70,7 @@ class MicroGear {
 		char* gearname;
 		char* gearkey;
         char* gearsecret;
+        char* gearalias;
         char* scope;
 		char gearid[MAXGEARIDSIZE];
 		char* app_topic;
@@ -88,7 +92,7 @@ class MicroGear {
 		void syncTime(Client*, unsigned long*);
 		void readEEPROM(char*,int, int);
 		void writeEEPROM(char*,int, int);
-        void getToken(char*, char*, char*);
+        void getToken(char*, char*, char*, char*, char*);
 
 		MQTTClient *mqttclient;
 		Client *sockclient;
@@ -105,8 +109,8 @@ class MicroGear {
 		void chat(char*, char*);
 		void loop();
         void resetToken();
-        void setToken(char*, char*);
-        int init(char*, char*, char*);
+        void setToken(char*, char*, char*);
+        int init(char*, char*, char*, char*);
 		void strcat(char*, char*);
 		void on(unsigned char,void (* callback)(char*, uint8_t*,unsigned int));
 		void setEEPROMOffset(int);
