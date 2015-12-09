@@ -134,7 +134,7 @@ void AuthClient::addParam(char* buff, char* key, char* value, bool first) {
     encode(strtail(buff),value);
 }
 
-int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* endpoint, char* gearkey, char* gearsecret, char* gearalias, char* scope, char* rtoken, char* rtokensecret) {
+int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* endpoint, char *flag, char* gearkey, char* gearsecret, char* gearalias, char* scope, char* rtoken, char* rtokensecret) {
         #ifdef DEBUG_H
             Serial.println("Enter getGearToken()..");
         #endif
@@ -159,6 +159,7 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
         *token = '\0';
         *tokensecret = '\0';
         *endpoint = '\0';
+        *flag = '\0';
 
         strcpy(signbase,"POST&http%3A%2F%2F");
         sprintf(strtail(signbase),"%s%%3A%d",GEARAUTHHOST,GEARAUTHPORT);
@@ -362,7 +363,8 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
                                     if (strcmp(p,"oauth_token")==0) strcpy(token,s+1);
                                     else if (strcmp(p,"oauth_token_secret")==0) strcpy(tokensecret,s+1);
                                     else if (strcmp(p,"endpoint")==0) strcpy(endpoint,s+1);
-                                    delay(200);
+                                    else if (strcmp(p,"flag")==0) strcpy(flag,s+1);
+                                    delay(50);
                                     if (!last) p = t+1; else break;
                                 }
                                 return httpstatus;

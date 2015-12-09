@@ -21,8 +21,6 @@
 #define GEARTIMEADDRESS "ga.netpie.io"
 #define GEARTIMEPORT 8080
 
-#define CLIENTTYPE "esp1"
-
 #define MINBACKOFFTIME             10
 #define MAXBACKOFFTIME             10000
 #define MAXENDPOINTLENGTH          200
@@ -35,6 +33,7 @@
 #define USERNAMESIZE               65
 #define PASSWORDSIZE               28
 #define REVOKECODESIZE             28
+#define FLAGSIZE                   4
 
 #define EEPROM_STATE_NUL           65
 #define EEPROM_STATE_REQ           66
@@ -54,9 +53,8 @@
 
 #define CLIENT_NOTCONNECT          0
 #define CLIENT_CONNECTED           1
-#define CLIENT_REJECTED            2
 
-/* event type */
+/* Event Type */
 #define MESSAGE                    1
 #define PRESENT                    2
 #define ABSENT                     3

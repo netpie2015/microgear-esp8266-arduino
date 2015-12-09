@@ -32,7 +32,7 @@ class AuthClient {
         void write(char*);
         void writeln(char*);
         bool readln(char*, size_t);
-        int getGearToken(char, char*, char*, char*, char*, char*, char*, char*, char*, char*);
+        int getGearToken(char, char*, char*, char*, char*, char*, char*, char *, char*, char*, char*);
     protected:
     private:
         Client* client;
