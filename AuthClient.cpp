@@ -320,7 +320,7 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
 
         writeln("Accept: */*");
         writeln("Connection: close");
-        writeln("User-Agent: Arduigear");
+        writeln("User-Agent: E8A");
         writeln("Content-length: 0");
         writeln("Content-Type: application/x-www-form-urlencoded");
         writeln(NULL);

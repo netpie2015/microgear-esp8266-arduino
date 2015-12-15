@@ -190,8 +190,7 @@ void MicroGear::getToken(char *gkey, char *galias, char* token, char* tokensecre
     tokensecret[0] = '\0';
 
     readEEPROM(ekey,EEPROM_KEYOFFSET,KEYSIZE);
-    if (strncmp(gkey,ekey,KEYSIZE)!=0)
-        resetToken();
+    if (strncmp(gkey,ekey,KEYSIZE)!=0) resetToken();
 
     readEEPROM(state,EEPROM_STATEOFFSET,1);
     #ifdef DEBUG_H
@@ -268,6 +267,7 @@ void MicroGear::getToken(char *gkey, char *galias, char* token, char* tokensecre
                     #ifdef DEBUG_H
                         Serial.println("authclient is disconnected");
                     #endif
+	                authclient->stop();
                     delay(1000);
                 }
             }
@@ -347,7 +347,7 @@ void MicroGear::getToken(char *gkey, char *galias, char* token, char* tokensecre
     authclient->stop();
 }
 
-boolean MicroGear::connect(char* appid) {
+bool MicroGear::connect(char* appid) {
     char username[USERNAMESIZE+1];
     char password[PASSWORDSIZE+1];
     char buff[2*TOKENSECRETSIZE+2];
@@ -423,7 +423,6 @@ boolean MicroGear::connect(char* appid) {
 
                     if (cb_connected)
                         cb_connected(NULL,NULL,0);
-
                     break;
             case CLIENT_NOTCONNECT :
                     if (backoff < MAXBACKOFFTIME) backoff = 2*backoff;
@@ -435,7 +434,7 @@ boolean MicroGear::connect(char* appid) {
     else return false;
 }
 
-boolean MicroGear::connected() {
+bool MicroGear::connected() {
     if (constate == CLIENT_NOTCONNECT) return CLIENT_NOTCONNECT;
     else return this->mqttclient->connected();
     //return this->sockclient->connected();
@@ -458,11 +457,15 @@ void MicroGear::unsubscribe(char* topic) {
 }
 
 void MicroGear::publish(char* topic, char* message) {
+    publish(topic, message, false);
+}
+
+void MicroGear::publish(char* topic, char* message, bool retained) {
     char top[MAXTOPICSIZE] = "/";
 
     strcat(top,appid);
     strcat(top,topic);
-    mqttclient->publish(top, message);
+    mqttclient->publish(top, message, retained);
 }
 
 /*
@@ -505,7 +508,6 @@ int MicroGear::init(char* gearkey,char* gearsecret,char* gearalias) {
 }
 
 int MicroGear::init(char* gearkey,char* gearsecret,char* gearalias, char* scope) {
-    //this->gearid = gearkey;
     this->gearkey = gearkey;
     this->gearsecret = gearsecret;
     this->gearalias = gearalias;

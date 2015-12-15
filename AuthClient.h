@@ -49,4 +49,4 @@ class AuthClient {
         void addParam(char*, char*, char*, bool);
 		unsigned long bootts;
 };
-#endif // HTTPCLIENT_H
+#endif

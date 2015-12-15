@@ -24,7 +24,6 @@
 #define MINBACKOFFTIME             10
 #define MAXBACKOFFTIME             10000
 #define MAXENDPOINTLENGTH          200
-#define MAXGEARIDSIZE              64
 #define MAXTOPICSIZE               128
 
 #define KEYSIZE                    16
@@ -70,12 +69,9 @@ class MicroGear {
         char* gearsecret;
         char* gearalias;
         char* scope;
-		char* app_topic;
-		char* group_topic;
         char* token;
         char* tokensecret;
         char* endpoint;
-		char  gearid[MAXGEARIDSIZE];
 		char  mqtt_client_type;
 		unsigned long bootts;
 		int eepromoffset;
@@ -100,9 +96,10 @@ class MicroGear {
 		MicroGear(Client&);
 		void setName(char*);
 		void setAlias(char*);
-		boolean connect(char*);
-		boolean connected();
+		bool connect(char*);
+		bool connected();
 		void publish(char*, char*);
+		void publish(char*, char*, bool);
 		void subscribe(char*);
 		void unsubscribe(char*);
 		void chat(char*, char*);
