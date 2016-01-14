@@ -71,28 +71,27 @@ class MicroGear {
         char* scope;
         char* token;
         char* tokensecret;
-        char* endpoint;
 		char  mqtt_client_type;
 		unsigned long bootts;
 		int eepromoffset;
 		bool eepromready;
-
         int backoff, retry;
+
+        void* self;
         AuthClient* authclient;
+		MQTTClient *mqttclient;
+		Client *sockclient;
 
 		bool getHTTPReply(Client*, char*, size_t);
 		bool clientReadln(Client*, char*, size_t);
 
 		void syncTime(Client*, unsigned long*);
-		void readEEPROM(char*,int, int);
-		void writeEEPROM(char*,int, int);
+		void initEndpoint(Client*, char*);
         void getToken(char*, char*, char*, char*, char*);
-
-		MQTTClient *mqttclient;
-		Client *sockclient;
 
 	public:
 		int constate;
+        char* endpoint;
 		MicroGear(Client&);
 		void setName(char*);
 		void setAlias(char*);
@@ -103,16 +102,20 @@ class MicroGear {
 		void subscribe(char*);
 		void unsubscribe(char*);
 		void chat(char*, char*);
+		int state();
 		void loop();
         void resetToken();
         void setToken(char*, char*, char*);
         int init(char*, char*);
         int init(char*, char*, char*);
         int init(char*, char*, char*, char*);
+        void resetEndpoint();
 		void strcat(char*, char*);
 		void on(unsigned char,void (* callback)(char*, uint8_t*,unsigned int));
 		void setEEPROMOffset(int);
-		int state();
+		void readEEPROM(char*,int, int);
+		void writeEEPROM(char*,int, int);
+		//void msgCallback(char* topic, uint8_t* payload, unsigned int length);
 };
 
 #endif

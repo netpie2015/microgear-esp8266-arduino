@@ -1,6 +1,8 @@
 #include "MicroGear.h"
 
 unsigned char topicprefixlen;
+MicroGear* mg = NULL;
+
 void (* cb_message)(char*, uint8_t*,unsigned int);
 void (* cb_present)(char*, uint8_t*,unsigned int);
 void (* cb_absent)(char*, uint8_t*,unsigned int);
@@ -21,6 +23,13 @@ void msgCallback(char* topic, uint8_t* payload, unsigned int length) {
             if (cb_absent) {
                 cb_absent("absent",payload,length);
             }
+        }
+        else if (strcmp(rtopic,"&resetendpoint") == 0) {
+          Serial.println("RESETTTT-EP");
+            if (mg) mg->resetEndpoint();
+//            if (mg) mg->writeEEPROM("",EEPROM_ENDPOINTSOFFSET,MAXENDPOINTLENGTH);
+//            else Serial.println("NULL-SELFFF");
+
         }
     }
     else if (cb_message) {
@@ -70,6 +79,33 @@ bool MicroGear::getHTTPReply(Client *client, char *buff, size_t buffsize) {
     }
 }
 
+void MicroGear::resetEndpoint() {
+    writeEEPROM("",EEPROM_ENDPOINTSOFFSET,MAXENDPOINTLENGTH);
+}
+
+void MicroGear::initEndpoint(Client *client, char* endpoint) {
+    if (*endpoint == '\0') {
+
+        #ifdef DEBUG_H
+            Serial.println("resync endpoint..");
+        #endif
+
+        char pstr[200];
+        client->connect(GEARAUTHHOST,GEARAUTHPORT);
+        sprintf(pstr,"GET /api/endpoint/%s HTTP/1.1\r\n\r\n",this->gearkey);
+        client->write((const uint8_t *)pstr,strlen(pstr));
+
+        delay(1000);
+        getHTTPReply(client,pstr,200);
+
+        if (strlen(pstr)>6) {
+            strcpy(endpoint,pstr+6);
+            writeEEPROM(endpoint,EEPROM_ENDPOINTSOFFSET,MAXENDPOINTLENGTH);
+        }
+        client->stop();
+    }
+}
+
 void MicroGear::syncTime(Client *client, unsigned long *bts) {
     char timestr[200];
     strcpy(timestr,"GET /api/time HTTP/1.1\r\n\r\n");
@@ -78,7 +114,7 @@ void MicroGear::syncTime(Client *client, unsigned long *bts) {
     client->write((const uint8_t *)timestr,strlen(timestr));
 
     delay(1000);
-    getHTTPReply(client,timestr,250);
+    getHTTPReply(client,timestr,200);
     
     *bts = atol(timestr) - millis()/1000;
 
@@ -102,6 +138,8 @@ MicroGear::MicroGear(Client& netclient ) {
     cb_absent = NULL;
     cb_present = NULL;
     eepromready = false;
+
+    mg = (MicroGear *)this;
 }
 
 void MicroGear::on(unsigned char event, void (* callback)(char*, uint8_t*,unsigned int)) {
@@ -162,10 +200,15 @@ void MicroGear::resetToken() {
                 readEEPROM(revokecode,EEPROM_REVOKECODEOFFSET,REVOKECODESIZE);
                 sprintf(pstr,"GET /api/revoke/%s/%s HTTP/1.1\r\n\r\n",token,revokecode);
                 sockclient->write((const uint8_t *)pstr,strlen(pstr));
+
+                delay(1000);
+                getHTTPReply(sockclient,pstr,200);
+
                 if (strcmp(pstr,"FAILED")!=0) {    
                     *state = EEPROM_STATE_NUL;
                     writeEEPROM(state,EEPROM_STATEOFFSET,1);
                 }
+                sockclient->stop();
             }
             else { 
                 *state = EEPROM_STATE_NUL;
@@ -380,6 +423,9 @@ bool MicroGear::connect(char* appid) {
     delete(authclient);
     authclient = NULL;
 
+    /* if endpoint is empty, request a new one */
+    initEndpoint(sockclient, endpoint);
+
     /* generate one-time user/password */
     sprintf(username,"%s%%%s%%%lu",token,gearkey,bootts+millis()/1000);
     sprintf(buff,"%s&%s",tokensecret,gearsecret);
@@ -387,7 +433,6 @@ bool MicroGear::connect(char* appid) {
     Sha1.HmacBase64(password, username);
     
     if (*token && *tokensecret) {
-
         #ifdef DEBUG_H
             Serial.println("Going to connect to MQTT broker");
             Serial.println(token);
@@ -482,7 +527,7 @@ void MicroGear::setName(char* gearname) {
     strcat(top,gearname);
     this->gearname = gearname;
 
-    subscribe(top);
+    subscribe(top); 
 }
 
 void MicroGear::setAlias(char* gearalias) {
