@@ -1,24 +1,24 @@
 # microgear-esp8266-arduino
 
-microgear-esp8266-arduino คือ client library ที่ทำหน้าที่เป็นตัวกลางในการเชื่อมต่อ ESP8266 เข้ากับบริการของ netpie platform เพื่อการพัฒนา IOT application รายละเอียดเกี่ยวกับ netpie platform สามารถศึกษาได้จาก http://netpie.io
+microgear-esp8266-arduino  is a client library that is used to connect an ESP8266 chip to the NETPIE Platform's service for developing IoT applications. For more details on the NETPIE Platform, please visit https://netpie.io . 
 
-## ความเข้ากันได้
-ทางทีมพัฒนาได้ทำการทดสบพบว่า library สามารถใช้ได้กับอุปกรณ์ต่อไปนี้ (อาจมีมากกว่านี้)
+## Compatibility
+We have tested this library and found it compatible with (but not limited to) the following hardware 
 - ESP8266-01
 - ESP8266-12E
-- NodeMCU v1 และ v2
+- NodeMCU v1 ??? v2
 
-## การติดตั้ง
-* ดาวน์โหลด Arduino IDE 1.6.5 จาก https://www.arduino.cc/en/Main/Software
-*  หลังจากติดตั้งเสร็จ เปิด Preferences
-*  ใส่ข้อความ `http://arduino.esp8266.com/stable/package_esp8266com_index.json` ลงในช่อง Additional Board Manager URLs
-*  เปิด Boards Manager เมนู Tools ค้นหาคำว่า `esp8266` และคลิก install
-*  ในเมนู Tools จะมีบอร์ด ESP8266 ชนิดต่างๆเพิ่มขึ้นมา เลือกให้ตรงกับชนิดของบอร์ดที่ใช้
-*  ดาวน์โหลด Microgear library จาก https://github.com/netpieio/microgear-esp8266-arduino/archive/master.zip
-*  Unzip ไปวางใน folder Libraries ของ Arduino IDE
-*  รายละเอียดเพิ่มเติมเกี่ยวกับ ESP8266 Arduino IDE ศึกษาได้จาก https://github.com/esp8266/Arduino
+## Installation
+* Download Arduino IDE 1.6.5 from https://www.arduino.cc/en/Main/Software
+*  After installation, open Preferences
+*  Enter `http://arduino.esp8266.com/stable/package_esp8266com_index.json`in the field Additional Board Manager URLs
+*  Open Boards Manager menu Tools. Search for  `esp8266` and click install
+*  In the menu Tools, there will be several  ESP8266 boards. Choose the one you use.
+*  Download Microgear library from https://github.com/netpieio/microgear-esp8266-arduino/archive/master.zip
+*  Unzip and put files in the folder folder Libraries of Arduino IDE
+*  For more information about ESP8266 Arduino IDE, see  https://github.com/esp8266/Arduino
 
-ตัวอย่างการเรียกใช้
+Usage Example
 ```c++
 #include <AuthClient.h>
 #include <MicroGear.h>
@@ -119,21 +119,21 @@ void loop() {
   delay(100);
 }
 ```
-## การใช้งาน library
+## Library Usage
 ---
 **microgear.init (*gearkey*, *gearsecret*, *scope*)**
 
 **arguments**
-* *gearkey* `string` - เป็น key สำหรับ gear ที่จะรัน ใช้ในการอ้างอิงตัวตนของ gear
-* *gearsecret* `string` - เป็น secret ของ key ซึ่งจะใช้ประกอบในกระบวนการยืนยันตัวตน
-* *scope* `string` - เป็นการระบุขอบเขตของสิทธิ์ที่ต้องการ
+* *gearkey* `string` - is used as a microgear identity.
+* *gearsecret* `string` comes in a pair with gearkey. The secret is used for authentication and integrity. 
+* *scope* `string` - specifies the right.  
 
-**scope**
-เป็นการต่อกันของ string ในรูปแบบต่อไปนี้ คั่นด้วยเครื่องหมาย comma
-  * [r][w]:&lt;/topic/path&gt; - r และ w คือสิทธิ์ในการ publish ละ subscribe topic ดังที่ระบุ เช่น rw:/outdoor/temp
-  *  name:&lt;gearname&gt; - คือสิทธิ์ในการตั้งชื่อตัวเองว่า &lt;gearname&gt;
-  *  chat:&lt;gearname&gt; - คือสิทธ์ในการ chat กับ &lt;gearname&gt;
-ในขั้นตอนของการสร้าง key บนเว็บ netpie.io นักพัฒนาสามารถกำหนดสิทธิ์ขั้นพื้นฐานให้แต่ละ key ได้อยู่แล้ว หากการ create microgear อยู่ภายใต้ขอบเขตของสิทธิ์ที่มี token จะถูกจ่ายอัตโนมัติ และ microgear จะสามารถเชื่อมต่อ netpie platform ได้ทันที แต่หาก scope ที่ร้องขอนั้นมากเกินกว่าสิทธิ์ที่กำหนดไว้ นักพัฒนาจะได้รับ notification ให้พิจารณาอนุมัติ microgear ที่เข้ามาขอเชื่อมต่อ ข้อควรระวัง หาก microgear มีการกระทำการเกินกว่าสิทธิ์ที่ได้รับไป เช่น พยายามจะ publish ไปยัง topic ที่ตัวเองไม่มีสิทธิ์ netpie จะตัดการเชื่อมต่อของ microgear โดยอัตโนมัติ ในกรณีที่ใช้ APPKEY เป็น gearkey เราสามารถละเว้น attribute นี้ได้ เพราะ APPKEY จะได้สิทธิ์ทุกอย่างในฐานะของเจ้าของ app โดย default อยู่แล้ว 
+**scope** is an optional field. This can be specified when the microgear needs additional rights beyond default scope. If the scope is specified, it may need an approval from the Application ID's owner for each request. The scope format is the concatenation of strings in the following forms, separated with commas:
+
+  * [r][w]:&lt;/topic/path&gt; - r and w is the right to publish and subscribe topic as specified such as rw:/outdoor/temp
+  *  name:&lt;gearname&gt; - is the right to name the &lt;gearname&gt;
+  *  chat:&lt;gearname&gt; - is the right to chat with &lt;gearname&gt;
+In the key generation process on the web netpie.io, the developer can specify basic rights to each key. If the creation of microgear is within right scope, a token will be automatically issued, and the microgear can be connected to NETPIE immediately. However, if the requested scope is beyond the specified right, the developer will recieve a notification to approve a microgear's connection. Note that if the microgear has operations beyond its right (e.g., pulishing to the topic that it does not has the right to do so), NETPIE will automatically disconnect the microgear. In case that APPKEY is used as a gearkey, the developer can ignore this attribute since by default the APPKEY will gain all rights as the ownwer of the app.
 
 ```c++
 microGear.init("sXfqDcXHzbFXiLk",
