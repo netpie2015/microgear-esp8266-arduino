@@ -7,6 +7,7 @@
 
 #define GEARAUTHHOST "ga.netpie.io"
 #define GEARAUTHPORT 8080
+#define GEARAUTHSECUREPORT 8081
 
 #define MGREV "E8A1a"
 #define MAXVERIFIERSIZE         32
@@ -25,7 +26,7 @@ class AuthClient {
         virtual ~AuthClient();
 
         void init(char*, char*,unsigned long);
-        bool connect();
+        bool connect(bool);
         void stop();
         void write_P(const char[]);
         void writeln_P(const char[]);

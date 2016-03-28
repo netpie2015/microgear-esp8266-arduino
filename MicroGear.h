@@ -20,6 +20,9 @@
 
 #define GEARTIMEADDRESS "ga.netpie.io"
 #define GEARTIMEPORT 8080
+#define GEARTIMESECUREPORT 8081
+#define GBPORT 1883
+#define GBSECUREPORT 8883
 
 #define MINBACKOFFTIME             10
 #define MAXBACKOFFTIME             10000
@@ -82,9 +85,9 @@ class MicroGear {
 		MQTTClient *mqttclient;
 		Client *sockclient;
 
+		bool connectBroker(char*);
 		bool getHTTPReply(Client*, char*, size_t);
 		bool clientReadln(Client*, char*, size_t);
-
 		void syncTime(Client*, unsigned long*);
 		void initEndpoint(Client*, char*);
         void getToken(char*, char*, char*, char*, char*);
@@ -92,10 +95,12 @@ class MicroGear {
 	public:
 		int constate;
         char* endpoint;
+        bool securemode;
 		MicroGear(Client&);
 		void setName(char*);
 		void setAlias(char*);
 		bool connect(char*);
+		bool secureConnect(char*);
 		bool connected();
 		void publish(char*, char*);
 		void publish(char*, char*, bool);
@@ -115,7 +120,6 @@ class MicroGear {
 		void setEEPROMOffset(int);
 		void readEEPROM(char*,int, int);
 		void writeEEPROM(char*,int, int);
-		//void msgCallback(char* topic, uint8_t* payload, unsigned int length);
 };
 
 #endif

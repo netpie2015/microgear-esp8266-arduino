@@ -21,8 +21,9 @@ void AuthClient::init(char* appid, char* scope, unsigned long bts) {
     this->bootts = bts;
 }
 
-bool AuthClient::connect() {
-    if (client->connect(GEARAUTHHOST,GEARAUTHPORT)) {
+bool AuthClient::connect(bool securemode) {
+    int port = securemode?GEARAUTHSECUREPORT:GEARAUTHPORT;
+    if (client->connect(GEARAUTHHOST,port)) {
         return true;
     }
     else {

@@ -91,7 +91,9 @@ void MicroGear::initEndpoint(Client *client, char* endpoint) {
         #endif
 
         char pstr[200];
-        client->connect(GEARAUTHHOST,GEARAUTHPORT);
+        int port = this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT;
+
+        client->connect(GEARAUTHHOST,port);
         sprintf(pstr,"GET /api/endpoint/%s HTTP/1.1\r\n\r\n",this->gearkey);
         client->write((const uint8_t *)pstr,strlen(pstr));
 
@@ -108,9 +110,11 @@ void MicroGear::initEndpoint(Client *client, char* endpoint) {
 
 void MicroGear::syncTime(Client *client, unsigned long *bts) {
     char timestr[200];
+    int port = this->securemode?GEARTIMESECUREPORT:GEARTIMEPORT;
+
     strcpy(timestr,"GET /api/time HTTP/1.1\r\n\r\n");
 
-    client->connect(GEARTIMEADDRESS,GEARTIMEPORT);
+    client->connect(GEARTIMEADDRESS,port);
     client->write((const uint8_t *)timestr,strlen(timestr));
 
     delay(1000);
@@ -194,8 +198,9 @@ void MicroGear::resetToken() {
                 char pstr[200];
                 char token[TOKENSIZE+1];
                 char revokecode[REVOKECODESIZE+1];
-
-                sockclient->connect(GEARAUTHHOST,GEARAUTHPORT);
+                int port = this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT;
+                
+                sockclient->connect(GEARAUTHHOST,port);
                 readEEPROM(token,EEPROM_TOKENOFFSET,TOKENSIZE);
                 readEEPROM(revokecode,EEPROM_REVOKECODEOFFSET,REVOKECODESIZE);
                 sprintf(pstr,"GET /api/revoke/%s/%s HTTP/1.1\r\n\r\n",token,revokecode);
@@ -251,7 +256,7 @@ void MicroGear::getToken(char *gkey, char *galias, char* token, char* tokensecre
 
         do {
             delay(2000);
-            if (authclient->connect()) {
+            if (authclient->connect(this->securemode)) {
 
                 #ifdef DEBUG_H
                     Serial.println("authclient is connected");
@@ -297,7 +302,7 @@ void MicroGear::getToken(char *gkey, char *galias, char* token, char* tokensecre
             delay(1000);
             authstatus = 0;
             while(authstatus==0) {
-                if (authclient->connect()) {
+                if (authclient->connect(this->securemode)) {
                     #ifdef DEBUG_H
                         Serial.println("authclient is connected, get access token");
                     #endif
@@ -390,13 +395,14 @@ void MicroGear::getToken(char *gkey, char *galias, char* token, char* tokensecre
     authclient->stop();
 }
 
-bool MicroGear::connect(char* appid) {
+bool MicroGear::connectBroker(char* appid) {
     char username[USERNAMESIZE+1];
     char password[PASSWORDSIZE+1];
     char buff[2*TOKENSECRETSIZE+2];
     char token[TOKENSIZE+1];
     char tokensecret[TOKENSECRETSIZE+1];
     char endpoint[MAXENDPOINTLENGTH+1];
+    int gbport;
 
     syncTime(sockclient, &bootts);
 
@@ -451,7 +457,14 @@ bool MicroGear::connect(char* appid) {
             p++;
         }
 
-        mqttclient = new PubSubClient(endpoint, *p=='\0'?1883:atoi(p), msgCallback, *sockclient);
+        gbport = this->securemode?GBSECUREPORT:GBPORT;
+        mqttclient = new PubSubClient(endpoint, gbport, msgCallback, *sockclient);
+        #ifdef DEBUG_H
+            Serial.print("Connecting to : ");
+            Serial.print(endpoint);
+            Serial.print(":");
+            Serial.println(gbport);
+        #endif
         delay(500);
         
         constate = this->mqttclient->connect(token,username+TOKENSIZE+1,password);
@@ -477,6 +490,16 @@ bool MicroGear::connect(char* appid) {
         return constate;
     }
     else return false;
+}
+
+bool MicroGear::connect(char* appid) {
+    this->securemode = false;
+    connectBroker(appid);
+}
+
+bool MicroGear::secureConnect(char* appid) {
+    this->securemode = true;
+    connectBroker(appid);
 }
 
 bool MicroGear::connected() {
