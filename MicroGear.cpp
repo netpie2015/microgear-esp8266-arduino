@@ -67,15 +67,25 @@ bool MicroGear::clientReadln(Client* client, char *buffer, size_t buflen) {
     return false;
 }
 
-bool MicroGear::getHTTPReply(Client *client, char *buff, size_t buffsize) {
+int MicroGear::getHTTPReply(Client *client, char *buff, size_t buffsize) {
+    int httpstatus = 0;
     char pline = 0;
     buff[0] = '\0';
+
     while (true) {
         clientReadln(client, buff, buffsize);
-        if (pline > 0) {
-            return true;
+        if (httpstatus==0) {
+            if (strncmp(buff,"HTTP",4)==0) {
+                buff[12] = '\0';
+                httpstatus = atoi(buff+9);
+            }
         }
-        if (strlen(buff)<1) pline++;
+        else {
+            if (pline > 0) {
+                return httpstatus;
+            }
+            if (strlen(buff)<1) pline++;
+        }
     }
 }
 
@@ -110,7 +120,7 @@ void MicroGear::initEndpoint(Client *client, char* endpoint) {
 
 void MicroGear::syncTime(Client *client, unsigned long *bts) {
     char timestr[200];
-    int port = this->securemode?GEARTIMESECUREPORT:GEARTIMEPORT;
+    int port = (this->securemode)?GEARTIMESECUREPORT:GEARTIMEPORT;
 
     strcpy(timestr,"GET /api/time HTTP/1.1\r\n\r\n");
 
@@ -119,7 +129,6 @@ void MicroGear::syncTime(Client *client, unsigned long *bts) {
 
     delay(1000);
     getHTTPReply(client,timestr,200);
-    
     *bts = atol(timestr) - millis()/1000;
 
     client->stop();

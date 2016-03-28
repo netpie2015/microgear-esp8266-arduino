@@ -17,7 +17,6 @@
 #include "AuthClient.h"
 //#include "debug.h"
 
-
 #define GEARTIMEADDRESS "ga.netpie.io"
 #define GEARTIMEPORT 8080
 #define GEARTIMESECUREPORT 8081
@@ -86,7 +85,7 @@ class MicroGear {
 		Client *sockclient;
 
 		bool connectBroker(char*);
-		bool getHTTPReply(Client*, char*, size_t);
+		int getHTTPReply(Client*, char*, size_t);
 		bool clientReadln(Client*, char*, size_t);
 		void syncTime(Client*, unsigned long*);
 		void initEndpoint(Client*, char*);

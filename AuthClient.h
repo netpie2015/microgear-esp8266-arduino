@@ -9,7 +9,7 @@
 #define GEARAUTHPORT 8080
 #define GEARAUTHSECUREPORT 8081
 
-#define MGREV "E8A1a"
+#define MGREV "E8A1b"
 #define MAXVERIFIERSIZE         32
 #define TOKENSIZE               16
 #define TOKENSECRETSIZE         32
@@ -40,6 +40,7 @@ class AuthClient {
         char* appid;
         char* gearid;
         char* scope;
+        bool securemode;
         void writeout(char*, bool, bool);
         char* append(char*, char*, char);
         char* append_P(char*, char*, char);
