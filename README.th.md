@@ -33,9 +33,9 @@ const char* ssid     = <WIFI_SSID>;
 const char* password = <WIFI_KEY>;
 
 #define APPID       <APPID>
-#define GEARKEY     <APPKEY>
-#define GEARSECRET  <APPSECRET>
-#define SCOPE       ""
+#define KEY     <APPKEY>
+#define SECRET  <APPSECRET>
+#define ALIAS       "myplant"
 
 WiFiClient client;
 AuthClient *authclient;
@@ -90,9 +90,7 @@ void setup() {
       Serial.println("IP address: ");
       Serial.println(WiFi.localIP());
 
-	  //uncomment the line below if you want to reset token -->
-      //microgear.resetToken();
-      microgear.init(GEARKEY,GEARSECRET,SCOPE);
+      microgear.init(KEY,SECRET,ALIAS);
       microgear.connect(APPID);
     }
 }
@@ -121,22 +119,15 @@ void loop() {
 ```
 ## การใช้งาน library
 ---
-**microgear.init (*gearkey*, *gearsecret*, *scope*)**
+**microgear.init (*gearkey*, *gearsecret*, *alias*)**
 
 **arguments**
-* *gearkey* `string` - เป็น key สำหรับ gear ที่จะรัน ใช้ในการอ้างอิงตัวตนของ gear
-* *gearsecret* `string` - เป็น secret ของ key ซึ่งจะใช้ประกอบในกระบวนการยืนยันตัวตน
-* *scope* `string` - เป็นการระบุขอบเขตของสิทธิ์ที่ต้องการ
-
-**scope**
-เป็นการต่อกันของ string ในรูปแบบต่อไปนี้ คั่นด้วยเครื่องหมาย comma
-  * [r][w]:&lt;/topic/path&gt; - r และ w คือสิทธิ์ในการ publish ละ subscribe topic ดังที่ระบุ เช่น rw:/outdoor/temp
-  *  name:&lt;gearname&gt; - คือสิทธิ์ในการตั้งชื่อตัวเองว่า &lt;gearname&gt;
-  *  chat:&lt;gearname&gt; - คือสิทธ์ในการ chat กับ &lt;gearname&gt;
-ในขั้นตอนของการสร้าง key บนเว็บ netpie.io นักพัฒนาสามารถกำหนดสิทธิ์ขั้นพื้นฐานให้แต่ละ key ได้อยู่แล้ว หากการ create microgear อยู่ภายใต้ขอบเขตของสิทธิ์ที่มี token จะถูกจ่ายอัตโนมัติ และ microgear จะสามารถเชื่อมต่อ netpie platform ได้ทันที แต่หาก scope ที่ร้องขอนั้นมากเกินกว่าสิทธิ์ที่กำหนดไว้ นักพัฒนาจะได้รับ notification ให้พิจารณาอนุมัติ microgear ที่เข้ามาขอเชื่อมต่อ ข้อควรระวัง หาก microgear มีการกระทำการเกินกว่าสิทธิ์ที่ได้รับไป เช่น พยายามจะ publish ไปยัง topic ที่ตัวเองไม่มีสิทธิ์ netpie จะตัดการเชื่อมต่อของ microgear โดยอัตโนมัติ ในกรณีที่ใช้ APPKEY เป็น gearkey เราสามารถละเว้น attribute นี้ได้ เพราะ APPKEY จะได้สิทธิ์ทุกอย่างในฐานะของเจ้าของ app โดย default อยู่แล้ว 
+* *key* `string` - เป็น key สำหรับ gear ที่จะรัน ใช้ในการอ้างอิงตัวตนของ gear
+* *secret* `string` - เป็น secret ของ key ซึ่งจะใช้ประกอบในกระบวนการยืนยันตัวตน
+* *alias* `string` - เป็นการระบุชื่อของ device
 
 ```c++
 microGear.init("sXfqDcXHzbFXiLk",
                "DNonzg2ivwS8ceksykGntrfQjxbL98",
-               "r:/outdoor/temp,w:/outdoor/valve,name:logger,chat:plant");
+               "myplant");
 ```
