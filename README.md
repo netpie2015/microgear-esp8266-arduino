@@ -4,9 +4,8 @@ microgear-esp8266-arduino  is a client library that is used to connect an ESP826
 
 ## Compatibility
 We have tested this library and found it compatible with (but not limited to) the following hardware 
-- ESP8266-01
-- ESP8266-12E
-- NodeMCU v1 ??? v2
+- ESP8266-01, 07, 12E, 12F
+- NodeMCU v1, v2, V3
 
 ## Installation
 * Download Arduino IDE 1.6.5 from https://www.arduino.cc/en/Main/Software
@@ -32,10 +31,10 @@ Usage Example
 const char* ssid     = <WIFI_SSID>;
 const char* password = <WIFI_KEY>;
 
-#define APPID       <APPID>
-#define GEARKEY     <APPKEY>
-#define GEARSECRET  <APPSECRET>
-#define SCOPE       ""
+#define APPID   <APPID>
+#define KEY     <APPKEY>
+#define SECRET  <APPSECRET>
+#define ALIAS  "mygear"
 
 WiFiClient client;
 AuthClient *authclient;
@@ -65,9 +64,8 @@ void onLostgear(char *attribute, uint8_t* msg, unsigned int msglen) {
 
 void onConnected(char *attribute, uint8_t* msg, unsigned int msglen) {
   Serial.println("Connected to NETPIE...");
-  microgear.setName("mygear");
+  microgear.setAlias("mygear");
 }
-
 
 void setup() {
     /* Event listener */
@@ -92,7 +90,7 @@ void setup() {
 
 	  //uncomment the line below if you want to reset token -->
       //microgear.resetToken();
-      microgear.init(GEARKEY,GEARSECRET,SCOPE);
+      microgear.init(KEY, SECRET, ALIAS);
       microgear.connect(APPID);
     }
 }
@@ -118,6 +116,7 @@ void loop() {
   }
   delay(100);
 }
+
 ```
 ## Library Usage
 ---
@@ -126,17 +125,10 @@ void loop() {
 **arguments**
 * *gearkey* `string` - is used as a microgear identity.
 * *gearsecret* `string` comes in a pair with gearkey. The secret is used for authentication and integrity. 
-* *scope* `string` - specifies the right.  
-
-**scope** is an optional field. This can be specified when the microgear needs additional rights beyond default scope. If the scope is specified, it may need an approval from the Application ID's owner for each request. The scope format is the concatenation of strings in the following forms, separated with commas:
-
-  * [r][w]:&lt;/topic/path&gt; - r and w is the right to publish and subscribe topic as specified such as rw:/outdoor/temp
-  *  name:&lt;gearname&gt; - is the right to name the &lt;gearname&gt;
-  *  chat:&lt;gearname&gt; - is the right to chat with &lt;gearname&gt;
-In the key generation process on the web netpie.io, the developer can specify basic rights to each key. If the creation of microgear is within right scope, a token will be automatically issued, and the microgear can be connected to NETPIE immediately. However, if the requested scope is beyond the specified right, the developer will recieve a notification to approve a microgear's connection. Note that if the microgear has operations beyond its right (e.g., pulishing to the topic that it does not has the right to do so), NETPIE will automatically disconnect the microgear. In case that APPKEY is used as a gearkey, the developer can ignore this attribute since by default the APPKEY will gain all rights as the ownwer of the app.
+* *alias* `string` - specifies the device alias.  
 
 ```c++
 microGear.init("sXfqDcXHzbFXiLk",
                "DNonzg2ivwS8ceksykGntrfQjxbL98",
-               "r:/outdoor/temp,w:/outdoor/valve,name:logger,chat:plant");
+               "myplant");
 ```
