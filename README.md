@@ -120,7 +120,7 @@ void loop() {
 ```
 ## Library Usage
 ---
-**microgear.init (*gearkey*, *gearsecret*, *scope*)**
+**microgear.init (*key*, *secret*, *alias*)**
 
 **arguments**
 * *gearkey* `string` - is used as a microgear identity.
