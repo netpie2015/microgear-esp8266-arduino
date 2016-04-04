@@ -25,11 +25,10 @@ void msgCallback(char* topic, uint8_t* payload, unsigned int length) {
             }
         }
         else if (strcmp(rtopic,"&resetendpoint") == 0) {
-          Serial.println("RESETTTT-EP");
+            #ifdef DEBUG_H
+                Serial.println("RESETTTT-EP");
+            #endif
             if (mg) mg->resetEndpoint();
-//            if (mg) mg->writeEEPROM("",EEPROM_ENDPOINTSOFFSET,MAXENDPOINTLENGTH);
-//            else Serial.println("NULL-SELFFF");
-
         }
     }
     else if (cb_message) {
@@ -139,6 +138,8 @@ MicroGear::MicroGear(Client& netclient ) {
     constate = CLIENT_NOTCONNECT;
     authclient = NULL;
 	mqttclient = NULL;
+
+    this->securemode = DEFAULTSECUREMODE;
 
     this->token = NULL;
     this->tokensecret = NULL;
@@ -501,13 +502,11 @@ bool MicroGear::connectBroker(char* appid) {
     else return false;
 }
 
-bool MicroGear::connect(char* appid) {
-    this->securemode = false;
-    connectBroker(appid);
+void MicroGear::useTLS(bool usetls) {
+    this->securemode = usetls;
 }
 
-bool MicroGear::secureConnect(char* appid) {
-    this->securemode = true;
+bool MicroGear::connect(char* appid) {
     connectBroker(appid);
 }
 

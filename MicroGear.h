@@ -23,6 +23,8 @@
 #define GBPORT 1883
 #define GBSECUREPORT 8883
 
+#define DEFAULTSECUREMODE false
+
 #define MINBACKOFFTIME             10
 #define MAXBACKOFFTIME             10000
 #define MAXENDPOINTLENGTH          200
@@ -98,8 +100,8 @@ class MicroGear {
 		MicroGear(Client&);
 		void setName(char*);
 		void setAlias(char*);
+		void useTLS(bool);
 		bool connect(char*);
-		bool secureConnect(char*);
 		bool connected();
 		void publish(char*, char*);
 		void publish(char*, char*, bool);
