@@ -1,9 +1,10 @@
 #ifndef AUTHCLIENT_H
 #define AUTHCLIENT_H
 
+#include <ESP8266WiFi.h>
 #include "Client.h"
 #include "SHA1.h"
-//#include "debug.h"
+#include "debug.h"
 
 #define GEARAUTHHOST "ga.netpie.io"
 #define GEARAUTHPORT 8080
@@ -25,6 +26,7 @@ class AuthClient {
         AuthClient(Client&);
         virtual ~AuthClient();
 
+        static void randomString(char* ,int);
         void init(char*, char*,unsigned long);
         bool connect(bool);
         void stop();

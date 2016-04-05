@@ -15,13 +15,12 @@
 #include <EEPROM.h>
 #include "SHA1.h"
 #include "AuthClient.h"
-//#include "debug.h"
+#include "debug.h"
 
-#define GEARTIMEADDRESS "ga.netpie.io"
-#define GEARTIMEPORT 8080
-#define GEARTIMESECUREPORT 8081
 #define GBPORT 1883
 #define GBSECUREPORT 8883
+//#define CAPORT 8079
+//#define CAFINGERPRINT "57 BA 02 8A 81 CB 6D D3 26 CE B7 21 7E A8 6C B5 DA D8 5A D0"
 
 #define DEFAULTSECUREMODE false
 
@@ -37,6 +36,8 @@
 #define PASSWORDSIZE               28
 #define REVOKECODESIZE             28
 #define FLAGSIZE                   4
+#define FINGERPRINTSIZE            60
+#define HMACSIZE		           28
 
 #define EEPROM_STATE_NUL           65
 #define EEPROM_STATE_REQ           66
@@ -48,6 +49,7 @@
 #define EEPROM_TOKENSECRETOFFSET   33
 #define EEPROM_REVOKECODEOFFSET    65
 #define EEPROM_ENDPOINTSOFFSET     93
+#define EEPROM_CERTFINGERPRINT     141
 
 #define MICROGEAR_NOTCONNECT       0
 #define MICROGEAR_CONNECTED        1

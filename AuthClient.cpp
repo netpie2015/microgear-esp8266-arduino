@@ -21,9 +21,9 @@ void AuthClient::init(char* appid, char* scope, unsigned long bts) {
     this->bootts = bts;
 }
 
-bool AuthClient::connect(bool isecuremode) {
-    int port = isecuremode?GEARAUTHSECUREPORT:GEARAUTHPORT;
-    this->securemode = isecuremode;
+bool AuthClient::connect(bool issecuremode) {
+    int port = issecuremode?GEARAUTHSECUREPORT:GEARAUTHPORT;
+    this->securemode = issecuremode;
     if (client->connect(GEARAUTHHOST,port)) {
         return true;
     }
@@ -136,12 +136,20 @@ void AuthClient::addParam(char* buff, char* key, char* value, bool first) {
     encode(strtail(buff),value);
 }
 
+void AuthClient::randomString(char *nonce, int size) {
+    const char* noncealpha = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+    randomSeed(analogRead(0));
+    for (int i=0;i<size;i++) {
+        nonce[i] = *(noncealpha+random(0,35));
+    }
+    nonce[size] = '\0';
+}
+
 int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* endpoint, char *flag, char* gearkey, char* gearsecret, char* gearalias, char* scope, char* rtoken, char* rtokensecret) {
         #ifdef DEBUG_H
             Serial.println("Enter getGearToken()..");
         #endif
-
-        const char* noncealpha = "0123456789abcdefghijklmnopqrstuvwxyz";
 
         char buff[MAXHEADERLINESIZE];
         char signbase[MAXSIGNATUREBASELENGTH];
@@ -236,11 +244,16 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
         write(buff);
 
         //OAUTH_NONCE
+/*
         randomSeed(analogRead(0));
         for (char i=0;i<NONCESIZE;i++) {
             nonce[i] = *(noncealpha+random(0,35));
         }
         nonce[NONCESIZE] = '\0';
+*/
+
+        randomString(nonce, NONCESIZE);
+
         *buff = '\0';
         append(buff,(char *)OAUTH_NONCE,0);
         sprintf(strtail(buff),"\"%s\"",nonce);
