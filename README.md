@@ -195,7 +195,7 @@ microgear may be interested in some topic. The developer can use the function su
 
 ---
 
-**void MicroGear::unsubscribe(char* topic) *
+**void MicroGear::unsubscribe(char* topic)**
 
 cancel subscription
 
@@ -207,3 +207,9 @@ cancel subscription
 **void MicroGear::resetToken()**
 
 To send a revoke token control message to NETPIE and delete the token from cache. As a result, the microgear will need to request a new token for the next connection.
+
+---
+
+**void MicroGear::loop()**
+
+This method has to be called regularly in the arduino loop() function to keep connection alive and to handle incoming messages.
