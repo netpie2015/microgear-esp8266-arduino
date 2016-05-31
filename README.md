@@ -117,14 +117,12 @@ void loop() {
 ---
 To initial a microgear use one of these methods : 
 
-**int MicroGear::init(char* *key*, char* *secret*)**
-
-**int MicroGear::init(char* *key*, char* *secret*, char* *alias*)**
+**int MicroGear::init(char* *key*, char* *secret* [,char* *alias*])**
 
 **arguments**
 * *key* - is used as a microgear identity.
 * *secret* - comes in a pair with gearkey. The secret is used for authentication and integrity. 
-* *alias* - specifies the device alias.  
+* *alias* - specifies the device alias (optional).  
 
 ```c++
 microgear.init("sXfqDcXHzbFXiLk", "DNonzg2ivwS8ceksykGntrfQjxbL98", "myplant");
@@ -144,16 +142,68 @@ Add a callback listener to the event.
 
 **bool MicroGear::connect(char* appid)**
 
-Connect to NETPIE
+Connect to NETPIE. If succeed, a CONNECTED event will be fired. 
 
 **arguments**
-* *appidt* - an APP ID.
+* *appidt* - an App ID.
 
 ---
 
-**bool MicroGear::connect(char* appid)**
+**bool MicroGear::connected(char* appid)**
 
 Check the connection status, return true if it is connected.
 
+**arguments**
+* *appidt* - an App ID.
 
-bool MicroGear::connected()
+---
+
+**void MicroGear::setAlias(char* alias)**
+
+microgear can set its own alias, which to be used for others make a function call chat(). The alias will appear on the key management portal of netpie.io .
+
+**arguments**
+* *alias* - an alias.
+
+---
+
+**void MicroGear::chat(char* target, char* message)**
+
+**arguments**
+* *target* - the alias of the microgear(s) that a message will be sent to.
+* *message* - message to be sent.
+
+---
+
+**void MicroGear::publish(char* topic, char* message [, bool retained])**
+
+In the case that the microgear want to send a message to an unspecified receiver, the developer can use the function publish to the desired topic, which all the microgears that subscribe such topic will receive a message.
+
+**arguments**
+* *topic* - name of topic to be send a message to.
+* *message* - message to be sent.
+* *retained* - retain a message or not (the default is false)
+
+---
+
+**void MicroGear::subscribe(char* topic)**
+
+microgear may be interested in some topic. The developer can use the function subscribe() to subscribe a message belong to such topic. If the topic used to retain a message, the microgear will receive a message everytime it subscribes that topic.
+
+**arguments**
+* *topic* - name of topic to be send a message to.
+
+---
+
+**void MicroGear::unsubscribe(char* topic) *
+
+cancel subscription
+
+**arguments**
+* *topic* - name of topic to be send a message to.
+ 
+---
+
+**void MicroGear::resetToken()**
+
+To send a revoke token control message to NETPIE and delete the token from cache. As a result, the microgear will need to request a new token for the next connection.
