@@ -115,20 +115,45 @@ void loop() {
 ```
 ## Library Usage
 ---
+To initial a microgear use one of these methods : 
 
-**microgear.init(char* *key*, char* *secret*)**
+**int MicroGear::init(char* *key*, char* *secret*)**
 
-**microgear.init(char* *key*, char* *secret*, char* *alias*)**
-
+**int MicroGear::init(char* *key*, char* *secret*, char* *alias*)**
 
 **arguments**
-* *key* `string` - is used as a microgear identity.
-* *secret* `string` comes in a pair with gearkey. The secret is used for authentication and integrity. 
-* *alias* `string` - specifies the device alias.  
+* *key* - is used as a microgear identity.
+* *secret* - comes in a pair with gearkey. The secret is used for authentication and integrity. 
+* *alias* - specifies the device alias.  
 
 ```c++
-microgear.init("sXfqDcXHzbFXiLk",
-               "DNonzg2ivwS8ceksykGntrfQjxbL98",
-               "myplant");
+microgear.init("sXfqDcXHzbFXiLk", "DNonzg2ivwS8ceksykGntrfQjxbL98", "myplant");
 ```
 
+---
+
+**void MicroGear::on(unsigned char event, void (* callback)(char*, uint8_t*,unsigned int))**
+
+Add a callback listener to the event.
+
+**arguments**
+* *event* - a name of the event (MESSAGE|CONNECTED|PRESENT|ABSENT).
+* *callback* - a callback function .
+
+---
+
+**bool MicroGear::connect(char* appid)**
+
+Connect to NETPIE
+
+**arguments**
+* *appidt* - an APP ID.
+
+---
+
+**bool MicroGear::connect(char* appid)**
+
+Check the connection status, return true if it is connected.
+
+
+bool MicroGear::connected()
