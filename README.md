@@ -6,9 +6,10 @@ microgear-esp8266-arduino  is a client library that is used to connect an ESP826
 We have tested this library and found it compatible with (but not limited to) the following hardware 
 - ESP8266-01, 07, 12E, 12F
 - NodeMCU v1, v2, V3
+- Espresso Lite v2.0
 
 ## Installation
-* Download Arduino IDE 1.6.5 from https://www.arduino.cc/en/Main/Software
+*  Download Arduino IDE 1.6.9 or later from https://www.arduino.cc/en/Main/Software
 *  After installation, open Preferences
 *  Enter `http://arduino.esp8266.com/stable/package_esp8266com_index.json`in the field Additional Board Manager URLs
 *  Open Boards Manager menu Tools. Search for  `esp8266` and click install
@@ -19,22 +20,16 @@ We have tested this library and found it compatible with (but not limited to) th
 
 Usage Example
 ```c++
-#include <AuthClient.h>
-#include <MicroGear.h>
-#include <MQTTClient.h>
-#include <SHA1.h>
-#include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <EEPROM.h>
 #include <MicroGear.h>
 
 const char* ssid     = <WIFI_SSID>;
 const char* password = <WIFI_KEY>;
 
-#define APPID   <APPID>
+#define APPID       <APPID>
 #define KEY     <APPKEY>
 #define SECRET  <APPSECRET>
-#define ALIAS  "mygear"
+#define ALIAS   "esp8266"
 
 WiFiClient client;
 AuthClient *authclient;
@@ -43,29 +38,30 @@ int timer = 0;
 MicroGear microgear(client);
 
 void onMsghandler(char *topic, uint8_t* msg, unsigned int msglen) {
-  Serial.print("Incoming message --> ");
-  msg[msglen] = '\0';
-  Serial.println((char *)msg);
+    Serial.print("Incoming message --> ");
+    msg[msglen] = '\0';
+    Serial.println((char *)msg);
 }
 
 void onFoundgear(char *attribute, uint8_t* msg, unsigned int msglen) {
-  Serial.print("Found new member --> ");
-  for (int i=0; i<msglen; i++)
-    Serial.print((char)msg[i]);
-  Serial.println();  
+    Serial.print("Found new member --> ");
+    for (int i=0; i<msglen; i++)
+        Serial.print((char)msg[i]);
+    Serial.println();  
 }
 
 void onLostgear(char *attribute, uint8_t* msg, unsigned int msglen) {
-  Serial.print("Lost member --> ");
-  for (int i=0; i<msglen; i++)
-    Serial.print((char)msg[i]);
-  Serial.println();
+    Serial.print("Lost member --> ");
+    for (int i=0; i<msglen; i++)
+        Serial.print((char)msg[i]);
+    Serial.println();
 }
 
 void onConnected(char *attribute, uint8_t* msg, unsigned int msglen) {
-  Serial.println("Connected to NETPIE...");
-  microgear.setAlias("mygear");
+    Serial.println("Connected to NETPIE...");
+    microgear.setName(ALIAS);
 }
+
 
 void setup() {
     /* Event listener */
@@ -79,52 +75,51 @@ void setup() {
 
     if (WiFi.begin(ssid, password)) {
 
-      while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-      }
-
-      Serial.println("WiFi connected");  
-      Serial.println("IP address: ");
-      Serial.println(WiFi.localIP());
-
-	  //uncomment the line below if you want to reset token -->
-      //microgear.resetToken();
-      microgear.init(KEY, SECRET, ALIAS);
-      microgear.connect(APPID);
+        while (WiFi.status() != WL_CONNECTED) {
+            delay(500);
+            Serial.print(".");
+        }
     }
+
+    Serial.println("WiFi connected");  
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+
+	//uncomment the line below if you want to reset token -->
+    //microgear.resetToken();
+    microgear.init(KEY,SECRET,ALIAS);
+    microgear.connect(APPID);
 }
 
 void loop() {
-  if (microgear.connected()) {
-    Serial.println("connected");
-    microgear.loop();
-    if (timer >= 1000) {
-        Serial.println("Publish...");
-        microgear.chat("mygear","Hello");
-        timer = 0;
-    } 
-    else timer += 100;
-  }
-  else {
-      Serial.println("connection lost, reconnect...");
-      if (timer >= 5000) {
-      microgear.connect(APPID);
-      timer = 0;
+    if (microgear.connected()) {
+        Serial.println("connected");
+        microgear.loop();
+        if (timer >= 1000) {
+            Serial.println("Publish...");
+            microgear.chat(ALIAS,"Hello");
+            timer = 0;
+        } 
+        else timer += 100;
     }
-    else timer += 100;
-  }
-  delay(100);
+    else {
+        Serial.println("connection lost, reconnect...");
+        if (timer >= 5000) {
+            microgear.connect(APPID);
+            timer = 0;
+        }
+        else timer += 100;
+    }
+    delay(100);
 }
-
 ```
 ## Library Usage
 ---
 **microgear.init (*key*, *secret*, *alias*)**
 
 **arguments**
-* *gearkey* `string` - is used as a microgear identity.
-* *gearsecret* `string` comes in a pair with gearkey. The secret is used for authentication and integrity. 
+* *key* `string` - is used as a microgear identity.
+* *secret* `string` comes in a pair with gearkey. The secret is used for authentication and integrity. 
 * *alias* `string` - specifies the device alias.  
 
 ```c++
@@ -132,3 +127,4 @@ microGear.init("sXfqDcXHzbFXiLk",
                "DNonzg2ivwS8ceksykGntrfQjxbL98",
                "myplant");
 ```
+
