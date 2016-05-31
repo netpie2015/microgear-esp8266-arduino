@@ -13,9 +13,9 @@ const char* password = <WIFI_KEY>;
 #define APPID       <APPID>
 #define KEY     <APPKEY>
 #define SECRET  <APPSECRET>
-#define ALIAS   "esp8266"
+#define ALIAS   "esp8266tls"
 
-WiFiClient client;
+WiFiClientSecure client;
 AuthClient *authclient;
 
 int timer = 0;
@@ -42,10 +42,9 @@ void onLostgear(char *attribute, uint8_t* msg, unsigned int msglen) {
 }
 
 void onConnected(char *attribute, uint8_t* msg, unsigned int msglen) {
-    Serial.println("Connected to NETPIE...");
-    microgear.setName(ALIAS);
+    Serial.println("Securely connected to NETPIE...");
+    microgear.setAlias(ALIAS);
 }
-
 
 void setup() {
     /* Event listener */
@@ -69,8 +68,7 @@ void setup() {
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 
-	//uncomment the line below if you want to reset token -->
-    //microgear.resetToken();
+    microgear.useTLS(true);
     microgear.init(KEY,SECRET,ALIAS);
     microgear.connect(APPID);
 }

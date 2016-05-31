@@ -15,7 +15,7 @@
 #include <EEPROM.h>
 #include "SHA1.h"
 #include "AuthClient.h"
-#include "debug.h"
+//#include "debug.h"
 
 #define GBPORT 1883
 #define GBSECUREPORT 8883

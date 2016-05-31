@@ -1,10 +1,16 @@
+/*
+  MicroGear-Arduino-ESP8255 library
+   NetPIE Project
+   http://netpie.io
+*/
+
 #ifndef AUTHCLIENT_H
 #define AUTHCLIENT_H
 
 #include <ESP8266WiFi.h>
 #include "Client.h"
 #include "SHA1.h"
-#include "debug.h"
+//#include "debug.h"
 
 #define GEARAUTHHOST "ga.netpie.io"
 #define GEARAUTHPORT 8080
