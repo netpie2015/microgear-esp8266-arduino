@@ -115,7 +115,11 @@ void loop() {
 ```
 ## Library Usage
 ---
-**microgear.init (*key*, *secret*, *alias*)**
+
+**microgear.init(char* *key*, char* *secret*)**
+
+**microgear.init(char* *key*, char* *secret*, char* *alias*)**
+
 
 **arguments**
 * *key* `string` - is used as a microgear identity.
@@ -123,7 +127,7 @@ void loop() {
 * *alias* `string` - specifies the device alias.  
 
 ```c++
-microGear.init("sXfqDcXHzbFXiLk",
+microgear.init("sXfqDcXHzbFXiLk",
                "DNonzg2ivwS8ceksykGntrfQjxbL98",
                "myplant");
 ```
