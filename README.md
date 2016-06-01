@@ -88,8 +88,6 @@ void setup() {
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 
-	//uncomment the line below if you want to reset token -->
-    //microgear.resetToken();
     microgear.init(KEY,SECRET,ALIAS);
     microgear.connect(APPID);
 }
