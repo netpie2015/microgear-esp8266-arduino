@@ -1,7 +1,7 @@
 /*  NETPIE ESP8266 secure microgear connection sample                  */
 /*  It differs from the normal connection by 2 stpes                   */
 /*     1. Declare a client as WiFiClientSecure instead of WiFiClient.  */
-/*     2. Call microgear.useTLS(true);                                 */
+/*     2. Call microgear.useTLS(true) before initial                   */
 /*  More information visit : https://netpie.io                         */
 
 #include <ESP8266WiFi.h>
@@ -15,6 +15,7 @@ const char* password = <WIFI_KEY>;
 #define SECRET  <APPSECRET>
 #define ALIAS   "esp8266tls"
 
+/*  1. Declare a client as WiFiClientSecure instead of WiFiClient. */
 WiFiClientSecure client;
 AuthClient *authclient;
 
@@ -68,6 +69,7 @@ void setup() {
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 
+    /* 2. Call microgear.useTLS(true) before initial */
     microgear.useTLS(true);
     microgear.init(KEY,SECRET,ALIAS);
     microgear.connect(APPID);
