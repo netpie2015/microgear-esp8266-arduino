@@ -1,9 +1,9 @@
 # microgear-esp8266-arduino
 
-microgear-esp8266-arduino  is a client library that is used to connect an ESP8266 chip to the NETPIE Platform's service for developing IoT applications. For more details on the NETPIE Platform, please visit https://netpie.io . 
+microgear-esp8266-arduino  is a client library that is used to connect an ESP8266 chip to the NETPIE Platform's service for developing IoT applications. For more details on the NETPIE Platform, please visit https://netpie.io .
 
 ## Compatibility
-We have tested this library and found it compatible with (but not limited to) the following hardware 
+We have tested this library and found it compatible with (but not limited to) the following hardware
 - ESP8266-01, 07, 12E, 12F
 - NodeMCU v1, v2, V3
 - Espresso Lite v2.0
@@ -29,7 +29,7 @@ We have tested this library and found it compatible with (but not limited to) th
 const char* ssid     = <WIFI_SSID>;
 const char* password = <WIFI_KEY>;
 
-#define APPID       <APPID>
+#define APPID   <APPID>
 #define KEY     <APPKEY>
 #define SECRET  <APPSECRET>
 #define ALIAS   "esp8266"
@@ -100,7 +100,7 @@ void loop() {
             Serial.println("Publish...");
             microgear.chat(ALIAS,"Hello");
             timer = 0;
-        } 
+        }
         else timer += 100;
     }
     else {
@@ -116,13 +116,13 @@ void loop() {
 ```
 ## Library Usage
 ---
-To initial a microgear use one of these methods : 
+To initial a microgear use one of these methods :
 
 **int MicroGear::init(char* *key*, char* *secret* [,char* *alias*])**
 
 **arguments**
 * *key* - is used as a microgear identity.
-* *secret* - comes in a pair with gearkey. The secret is used for authentication and integrity. 
+* *secret* - comes in a pair with gearkey. The secret is used for authentication and integrity.
 * *alias* - specifies the device alias (optional).  
 
 ```c++
@@ -143,7 +143,7 @@ Add a callback listener to the event.
 
 **bool MicroGear::connect(char* appid)**
 
-Connect to NETPIE. If succeed, a CONNECTED event will be fired. 
+Connect to NETPIE. If succeed, a CONNECTED event will be fired.
 
 **arguments**
 * *appidt* - an App ID.
@@ -183,7 +183,7 @@ In the case that the microgear want to send a message to an unspecified receiver
 **arguments**
 * *topic* - name of topic to be send a message to.
 * *message* - message to be sent.
-* *retained* - retain a message or not (the default is false)
+* *retained* - retain a message or not, the default is false (optional))
 
 ---
 
@@ -202,7 +202,7 @@ cancel subscription
 
 **arguments**
 * *topic* - name of topic to be send a message to.
- 
+
 ---
 
 **void MicroGear::resetToken()**

@@ -4,12 +4,12 @@ microgear-esp8266-arduino คือ client library ที่ทำหน้า�
 
 ## ความเข้ากันได้
 ทางทีมพัฒนาได้ทำการทดสบพบว่า library สามารถใช้ได้กับอุปกรณ์ต่อไปนี้ (อาจมีมากกว่านี้)
-- ESP8266-01
-- ESP8266-12E
-- NodeMCU v1 และ v2
+- ESP8266-01, 07, 12E, 12F
+- NodeMCU v1, v2, V3
+- Espresso Lite v2.0
 
 ## การติดตั้ง
-* ดาวน์โหลด Arduino IDE 1.6.5 จาก https://www.arduino.cc/en/Main/Software
+* ดาวน์โหลด Arduino IDE 1.6.9 หรือใหม่กว่า จาก https://www.arduino.cc/en/Main/Software
 *  หลังจากติดตั้งเสร็จ เปิด Preferences
 *  ใส่ข้อความ `http://arduino.esp8266.com/stable/package_esp8266com_index.json` ลงในช่อง Additional Board Manager URLs
 *  เปิด Boards Manager เมนู Tools ค้นหาคำว่า `esp8266` และคลิก install
@@ -18,24 +18,21 @@ microgear-esp8266-arduino คือ client library ที่ทำหน้า�
 *  Unzip ไปวางใน folder Libraries ของ Arduino IDE
 *  รายละเอียดเพิ่มเติมเกี่ยวกับ ESP8266 Arduino IDE ศึกษาได้จาก https://github.com/esp8266/Arduino
 
-ตัวอย่างการเรียกใช้
+**ข้อจำกัที่พบด**
+* ฟีเจอร์ TLS ทำงานได้บน ESP8266 SDK 2.1.0 ไม่ทำงานบนเวอร์ชั่น 2.2.0 แต่ทำงานได้บนเวอร์ชั่น 2.3.0-rc1
+
+**ตัวอย่างการเรียกใช้**
 ```c++
-#include <AuthClient.h>
-#include <MicroGear.h>
-#include <MQTTClient.h>
-#include <SHA1.h>
-#include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <EEPROM.h>
 #include <MicroGear.h>
 
 const char* ssid     = <WIFI_SSID>;
 const char* password = <WIFI_KEY>;
 
-#define APPID       <APPID>
+#define APPID   <APPID>
 #define KEY     <APPKEY>
 #define SECRET  <APPSECRET>
-#define ALIAS       "myplant"
+#define ALIAS   "esp8266"
 
 WiFiClient client;
 AuthClient *authclient;
@@ -44,28 +41,28 @@ int timer = 0;
 MicroGear microgear(client);
 
 void onMsghandler(char *topic, uint8_t* msg, unsigned int msglen) {
-  Serial.print("Incoming message --> ");
-  msg[msglen] = '\0';
-  Serial.println((char *)msg);
+    Serial.print("Incoming message --> ");
+    msg[msglen] = '\0';
+    Serial.println((char *)msg);
 }
 
 void onFoundgear(char *attribute, uint8_t* msg, unsigned int msglen) {
-  Serial.print("Found new member --> ");
-  for (int i=0; i<msglen; i++)
-    Serial.print((char)msg[i]);
-  Serial.println();  
+    Serial.print("Found new member --> ");
+    for (int i=0; i<msglen; i++)
+        Serial.print((char)msg[i]);
+    Serial.println();  
 }
 
 void onLostgear(char *attribute, uint8_t* msg, unsigned int msglen) {
-  Serial.print("Lost member --> ");
-  for (int i=0; i<msglen; i++)
-    Serial.print((char)msg[i]);
-  Serial.println();
+    Serial.print("Lost member --> ");
+    for (int i=0; i<msglen; i++)
+        Serial.print((char)msg[i]);
+    Serial.println();
 }
 
 void onConnected(char *attribute, uint8_t* msg, unsigned int msglen) {
-  Serial.println("Connected to NETPIE...");
-  microgear.setName("mygear");
+    Serial.println("Connected to NETPIE...");
+    microgear.setName(ALIAS);
 }
 
 
@@ -81,45 +78,47 @@ void setup() {
 
     if (WiFi.begin(ssid, password)) {
 
-      while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-      }
-
-      Serial.println("WiFi connected");  
-      Serial.println("IP address: ");
-      Serial.println(WiFi.localIP());
-
-      microgear.init(KEY,SECRET,ALIAS);
-      microgear.connect(APPID);
+        while (WiFi.status() != WL_CONNECTED) {
+            delay(500);
+            Serial.print(".");
+        }
     }
+
+    Serial.println("WiFi connected");  
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+
+    microgear.init(KEY,SECRET,ALIAS);
+    microgear.connect(APPID);
 }
 
 void loop() {
-  if (microgear.connected()) {
-    Serial.println("connected");
-    microgear.loop();
-    if (timer >= 1000) {
-        Serial.println("Publish...");
-        microgear.chat("mygear","Hello");
-        timer = 0;
-    } 
-    else timer += 100;
-  }
-  else {
-      Serial.println("connection lost, reconnect...");
-      if (timer >= 5000) {
-      microgear.connect(APPID);
-      timer = 0;
+    if (microgear.connected()) {
+        Serial.println("connected");
+        microgear.loop();
+        if (timer >= 1000) {
+            Serial.println("Publish...");
+            microgear.chat(ALIAS,"Hello");
+            timer = 0;
+        }
+        else timer += 100;
     }
-    else timer += 100;
-  }
-  delay(100);
+    else {
+        Serial.println("connection lost, reconnect...");
+        if (timer >= 5000) {
+            microgear.connect(APPID);
+            timer = 0;
+        }
+        else timer += 100;
+    }
+    delay(100);
 }
 ```
 ## การใช้งาน library
 ---
-**microgear.init (*gearkey*, *gearsecret*, *alias*)**
+Initial library ด้วยคำสั่ง
+
+**int MicroGear::init(char* *key*, char* *secret* [,char* *alias*])**
 
 **arguments**
 * *key* `string` - เป็น key สำหรับ gear ที่จะรัน ใช้ในการอ้างอิงตัวตนของ gear
@@ -127,7 +126,91 @@ void loop() {
 * *alias* `string` - เป็นการระบุชื่อของ device
 
 ```c++
-microGear.init("sXfqDcXHzbFXiLk",
-               "DNonzg2ivwS8ceksykGntrfQjxbL98",
-               "myplant");
+microgear.init("sXfqDcXHzbFXiLk", "DNonzg2ivwS8ceksykGntrfQjxbL98", "myplant");
 ```
+
+---
+
+**void MicroGear::on(unsigned char event, void (* callback)(char*, uint8_t*,unsigned int))**
+
+เพิ่มฟังก์ชั่นที่ตอบสนองต่อ event
+
+**arguments**
+* *event* - ชืิ่อ event (MESSAGE|CONNECTED|PRESENT|ABSENT)
+* *callback* - ฟังก์ชั่น callback
+
+---
+
+**bool MicroGear::connect(char* appid)**
+
+เชื่อต่อกับ NETPIE platform ถ้าเชื่อมต่อสำเร็จ จะมี event ชื่อ CONNECTED เกิดขึ้น
+
+**arguments**
+* *appidt* - App ID.
+
+---
+
+**bool MicroGear::connected(char* appid)**
+
+ส่งค่าสถานะการเชื่อมต่อ เป็น true หากกำลังเชื่อมต่ออยู่
+
+**arguments**
+* *appidt* - App ID.
+
+---
+
+**void MicroGear::setAlias(char* alias)**
+
+microgear สามารถตั้งนามแฝงของตัวเองได้ ซึ่งสามารถใช้เป็นชื่อให้คนอื่นเรียกในการใช้ฟังก์ชั่น chat() และชื่อที่ตั้งในโค้ด จะไปปรากฎบนหน้าจัดการ key บนเว็บ netpie.io อย่างอัตโนมัติ
+
+**arguments**
+* *alias* - ชื่อของ microgear นี้
+
+---
+
+**void MicroGear::chat(char* target, char* message)**
+
+**arguments**
+* *target* - ชื่อของ microgear ที่ต้องการจะส่งข้อความไปถึง
+* *message* - ข้อความ
+
+---
+
+**void MicroGear::publish(char* topic, char* message [, bool retained])**
+
+ในกรณีที่ต้องการส่งข้อความแบบไม่เจาะจงผู้รับ สามารถใช้ฟังชั่น publish ไปยัง topic ที่กำหนดได้ ซึ่งจะมีแต่ microgear ที่ subscribe topoic นี้เท่านั้น ที่จะได้รับข้อความ
+
+**arguments**
+* *topic* - ชื่อของ topic ที่ต้องการจะส่งข้อความไปถึง
+* *message* - ข้อความ
+* *retained* - ให้ retain ข้อความไว้หรือไม่ default เป็น false (optional)
+
+---
+
+**void MicroGear::subscribe(char* topic)**
+
+microgear อาจจะมีความสนใจใน topic ใดเป็นการเฉพาะ เราสามารถใช้ฟังก์ชั่น subscribe() ในการบอกรับ message ของ topic นั้นได้ และหาก topic นั้นเคยมีการ retain ข้อความไว้ microgear จะได้รับข้อความนั้นทุกครั้งที่ subscribe topic
+
+**arguments**
+* *topic* - ชื่อของ topic ที่ต้องการจะส่งข้อความไปถึง
+
+---
+
+**void MicroGear::unsubscribe(char* topic)**
+
+ยกเลิกการ subscribe
+
+**arguments**
+* *topic* - ชื่อของ topic ที่ต้องการจะส่งข้อความไปถึง
+
+---
+
+**void MicroGear::resetToken()**
+
+ส่งคำสั่ง revoke token ไปยัง netpie และลบ token ออกจาก cache ส่งผลให้ microgear ต้องขอ token ใหม่ในการเชื่อมต่อครั้งต่อไป
+
+---
+
+**void MicroGear::loop()**
+
+method นี้ควรถูกเรียกใน arduino loop() เป็นระยะๆ เพื่อที่ microgear library จะได้ keep alive connection alive และจัดการกับ message ที่เข้ามา
