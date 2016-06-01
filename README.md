@@ -18,7 +18,10 @@ We have tested this library and found it compatible with (but not limited to) th
 *  Unzip and put files in the folder folder Libraries of Arduino IDE
 *  For more information about ESP8266 Arduino IDE, see  https://github.com/esp8266/Arduino
 
-Usage Example
+**Known Issues**
+* TLS works fine on ESP8266 SDK 2.1.0 but has an issue with 2.2.0. However it works again with 2.3.0-rc1
+
+**Usage Example**
 ```c++
 #include <ESP8266WiFi.h>
 #include <MicroGear.h>
