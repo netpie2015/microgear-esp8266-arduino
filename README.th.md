@@ -159,7 +159,7 @@ microgear.init("sXfqDcXHzbFXiLk", "DNonzg2ivwS8ceksykGntrfQjxbL98", "myplant");
 เพิ่มฟังก์ชั่นที่ตอบสนองต่อ event
 
 **arguments**
-* *event* - ชืิ่อ event (MESSAGE|CONNECTED|PRESENT|ABSENT)
+* *event* - ชื่อ event (MESSAGE|CONNECTED|PRESENT|ABSENT)
 * *callback* - ฟังก์ชั่น callback
 
 ---
