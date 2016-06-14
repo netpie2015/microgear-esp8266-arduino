@@ -19,15 +19,13 @@
 
 #define GBPORT 1883
 #define GBSECUREPORT 8883
-//#define CAPORT 8079
-//#define CAFINGERPRINT "57 BA 02 8A 81 CB 6D D3 26 CE B7 21 7E A8 6C B5 DA D8 5A D0"
-
 #define DEFAULTSECUREMODE false
 
 #define MINBACKOFFTIME             10
 #define MAXBACKOFFTIME             10000
 #define MAXENDPOINTLENGTH          200
 #define MAXTOPICSIZE               128
+#define MAXBUFFSIZE               128
 
 #define KEYSIZE                    16
 #define TOKENSIZE                  16
@@ -93,7 +91,7 @@ class MicroGear {
 		bool clientReadln(Client*, char*, size_t);
 		void syncTime(Client*, unsigned long*);
 		void initEndpoint(Client*, char*);
-        void getToken(char*, char*, char*, char*, char*);
+    void getToken(char*, char*, char*, char*, char*);
 
 	public:
 		int constate;
@@ -105,11 +103,27 @@ class MicroGear {
 		void useTLS(bool);
 		bool connect(char*);
 		bool connected();
-		void publish(char*, char*);
-		void publish(char*, char*, bool);
+
+		bool publish(char*, char*);
+		bool publish(char*, char*, bool);
+
+		bool publish(char*, double);
+		bool publish(char*, double, bool);
+		bool publish(char*, double, int);
+		bool publish(char*, double, int, bool);
+		bool publish(char*, int);
+		bool publish(char*, int, bool);
+		bool publish(char*, String);
+		bool publish(char*, String, bool);
+
+		bool chat(char*, char*);
+		bool chat(char*, int);
+		bool chat(char*, double);
+		bool chat(char*, double, int);
+		bool chat(char*, String);
+
 		void subscribe(char*);
 		void unsubscribe(char*);
-		void chat(char*, char*);
 		int state();
 		void loop();
         void resetToken();
