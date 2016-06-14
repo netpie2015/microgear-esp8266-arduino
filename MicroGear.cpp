@@ -621,6 +621,10 @@ bool MicroGear::publish(char* topic, int message, bool retained) {
     return publish(topic, message, 0, retained);
 }
 
+bool MicroGear::publish(char* topic, String message) {
+    return publish(topic, message, false);
+}
+
 bool MicroGear::publish(char* topic, String message, bool retained) {
     char buff[MAXBUFFSIZE];
     message.toCharArray(buff,MAXBUFFSIZE);
