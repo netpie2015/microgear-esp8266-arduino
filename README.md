@@ -3,10 +3,17 @@
 microgear-esp8266-arduino  is a client library that is used to connect an ESP8266 chip to the NETPIE Platform's service for developing IoT applications. For more details on the NETPIE Platform, please visit https://netpie.io .
 
 ## Compatibility
+
 We have tested this library and found it compatible with (but not limited to) the following hardware
 - ESP8266-01, 07, 12E, 12F
 - NodeMCU v1, v2, V3
 - Espresso Lite v2.0
+
+## Outgoing Network Port
+
+Make sure ther following ports are allowed to connect from your network.
+- Non-TLS mode : 8080 and 1883 (the library uses this mode by default)
+- TLS mode : 8081 and 8883 (still under testing)
 
 ## Installation
 *  Download Arduino IDE 1.6.9 or later from https://www.arduino.cc/en/Main/Software
@@ -182,6 +189,15 @@ Check the connection status, return true if it is connected.
 
 ---
 
+**void MicroGear::useTLS(bool* enabled)**
+
+Switch between uncrypted and TLS mode (by default the library does not use TLS). This function must be called before the connection is made.
+
+**arguments**
+* *enabled* - set to TRUE to use TLS.
+
+---
+
 **void MicroGear::setAlias(char* alias)**
 
 microgear can set its own alias, which to be used for others make a function call chat(). The alias will appear on the key management portal of netpie.io .
@@ -191,21 +207,31 @@ microgear can set its own alias, which to be used for others make a function cal
 
 ---
 
-**void MicroGear::chat(char* target, char* message)**
-
+**bool MicroGear::chat(char* target, char* message)**<br />
+**bool chat(char* target, int message);**<br />
+**bool chat(char* target, double message);**<br />
+**bool chat(char* target, double, int decimal);**<br />
+**bool chat(char* target, String message);**<br />
+		
 **arguments**
 * *target* - the alias of the microgear(s) that a message will be sent to.
 * *message* - message to be sent.
+* *decimal* - number of digits after the deimal point.
 
 ---
 
-**void MicroGear::publish(char* topic, char* message [, bool retained])**
+**bool MicroGear::publish(char* topic, char* message [, bool retained])**<br />
+**bool MicroGear::publish(char* topic, double message [, bool retained]);**<br />
+**bool MicroGear::publish(char* topic, double message, int decimal [, bool retained]);**<br />
+**bool MicroGear::publish(char* topic, int message [, bool retained]);**<br />
+**bool MicroGear::publish(char* topic, String message [, bool retained]);**<br />
 
 In the case that the microgear want to send a message to an unspecified receiver, the developer can use the function publish to the desired topic, which all the microgears that subscribe such topic will receive a message.
 
 **arguments**
 * *topic* - name of topic to be send a message to.
 * *message* - message to be sent.
+* *decimal* - number of digits after the deimal point.
 * *retained* - retain a message or not, the default is false (optional))
 
 ---
