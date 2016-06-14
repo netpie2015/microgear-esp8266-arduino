@@ -207,11 +207,11 @@ microgear can set its own alias, which to be used for others make a function cal
 
 ---
 
-**bool MicroGear::chat(char* target, char* message)**<br />
-**bool chat(char* target, int message);**<br />
-**bool chat(char* target, double message);**<br />
-**bool chat(char* target, double, int decimal);**<br />
-**bool chat(char* target, String message);**<br />
+**bool MicroGear::chat(char* target, char* message)**<br/>
+**bool MicroGear::chat(char* target, int message)**<br/>
+**bool MicroGear::chat(char* target, double message)**<br/>
+**bool MicroGear::chat(char* target, double, int decimal)**<br/>
+**bool MicroGear::chat(char* target, String message)**<br/>
 		
 **arguments**
 * *target* - the alias of the microgear(s) that a message will be sent to.
@@ -220,11 +220,11 @@ microgear can set its own alias, which to be used for others make a function cal
 
 ---
 
-**bool MicroGear::publish(char* topic, char* message [, bool retained])**<br />
-**bool MicroGear::publish(char* topic, double message [, bool retained]);**<br />
-**bool MicroGear::publish(char* topic, double message, int decimal [, bool retained]);**<br />
-**bool MicroGear::publish(char* topic, int message [, bool retained]);**<br />
-**bool MicroGear::publish(char* topic, String message [, bool retained]);**<br />
+**bool MicroGear::publish(char* topic, char* message [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, double message [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, double message, int decimal [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, int message [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, String message [, bool retained])**<br/>
 
 In the case that the microgear want to send a message to an unspecified receiver, the developer can use the function publish to the desired topic, which all the microgears that subscribe such topic will receive a message.
 
