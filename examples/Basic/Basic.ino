@@ -13,7 +13,6 @@ const char* password = <WIFI_KEY>;
 #define ALIAS   "esp8266"
 
 WiFiClient client;
-AuthClient *authclient;
 
 int timer = 0;
 MicroGear microgear(client);

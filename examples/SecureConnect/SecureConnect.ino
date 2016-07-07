@@ -17,7 +17,6 @@ const char* password = <WIFI_KEY>;
 
 /*  1. Declare a client as WiFiClientSecure instead of WiFiClient. */
 WiFiClientSecure client;
-AuthClient *authclient;
 
 int timer = 0;
 MicroGear microgear(client);
