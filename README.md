@@ -175,16 +175,13 @@ Add a callback listener to the event.
 Connect to NETPIE. If succeed, a CONNECTED event will be fired.
 
 **arguments**
-* *appidt* - an App ID.
+* *appid* - an App ID.
 
 ---
 
-**bool MicroGear::connected(char* appid)**
+**bool MicroGear::connected()**
 
 Check the connection status, return true if it is connected.
-
-**arguments**
-* *appidt* - an App ID.
 
 ---
 

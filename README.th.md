@@ -168,16 +168,13 @@ microgear.init("sXfqDcXHzbFXiLk", "DNonzg2ivwS8ceksykGntrfQjxbL98", "myplant");
 เชื่อต่อกับ NETPIE platform ถ้าเชื่อมต่อสำเร็จ จะมี event ชื่อ CONNECTED เกิดขึ้น
 
 **arguments**
-* *appidt* - App ID.
+* *appid* - App ID.
 
 ---
 
-**bool MicroGear::connected(char* appid)**
+**bool MicroGear::connected()**
 
 ส่งค่าสถานะการเชื่อมต่อ เป็น true หากกำลังเชื่อมต่ออยู่
-
-**arguments**
-* *appidt* - App ID.
 
 ---
 
