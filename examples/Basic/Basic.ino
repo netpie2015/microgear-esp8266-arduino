@@ -42,7 +42,7 @@ void onLostgear(char *attribute, uint8_t* msg, unsigned int msglen) {
 void onConnected(char *attribute, uint8_t* msg, unsigned int msglen) {
     Serial.println("Connected to NETPIE...");
     /* Set the alias of this microgear ALIAS */
-    microgear.setName(ALIAS);
+    microgear.setAlias(ALIAS);
 }
 
 
