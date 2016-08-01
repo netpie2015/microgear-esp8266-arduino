@@ -491,7 +491,12 @@ bool MicroGear::connectBroker(char* appid) {
     authclient = NULL;
 
     /* if endpoint is empty, request a new one */
-    initEndpoint(sockclient, endpoint);
+    if(strcmp(endpoint,"") != 0) {
+    	initEndpoint(sockclient, endpoint);
+    }
+    else {
+    	return false;
+    }
 
     /* generate one-time user/password */
     sprintf(username,"%s%%%s%%%lu",token,gearkey,bootts+millis()/1000);
