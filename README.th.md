@@ -187,21 +187,31 @@ microgear สามารถตั้งนามแฝงของตัวเ�
 
 ---
 
-**void MicroGear::chat(char* target, char* message)**
-
+**bool MicroGear::chat(char* target, char* message)**<br/>
+**bool MicroGear::chat(char* target, int message)**<br/>
+**bool MicroGear::chat(char* target, double message)**<br/>
+**bool MicroGear::chat(char* target, double, int decimal)**<br/>
+**bool MicroGear::chat(char* target, String message)**<br/>
+		
 **arguments**
 * *target* - ชื่อของ microgear ที่ต้องการจะส่งข้อความไปถึง
+* *decimal* - จำนวนตำแหน่งหลังจุดทศนิยม
 * *message* - ข้อความ
 
 ---
 
-**void MicroGear::publish(char* topic, char* message [, bool retained])**
+**bool MicroGear::publish(char* topic, char* message [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, double message [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, double message, int decimal [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, int message [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, String message [, bool retained])**<br/>
 
 ในกรณีที่ต้องการส่งข้อความแบบไม่เจาะจงผู้รับ สามารถใช้ฟังชั่น publish ไปยัง topic ที่กำหนดได้ ซึ่งจะมีแต่ microgear ที่ subscribe topoic นี้เท่านั้น ที่จะได้รับข้อความ
 
 **arguments**
 * *topic* - ชื่อของ topic ที่ต้องการจะส่งข้อความไปถึง
 * *message* - ข้อความ
+* *decimal* - จำนวนตำแหน่งหลังจุดทศนิยม
 * *retained* - ให้ retain ข้อความไว้หรือไม่ default เป็น false (optional)
 
 ---
