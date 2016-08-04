@@ -165,7 +165,10 @@ microgear.init("sXfqDcXHzbFXiLk", "DNonzg2ivwS8ceksykGntrfQjxbL98", "myplant");
 
 **bool MicroGear::connect(char* appid)**
 
-เชื่อต่อกับ NETPIE platform ถ้าเชื่อมต่อสำเร็จ จะมี event ชื่อ CONNECTED เกิดขึ้น
+เชื่อต่อกับ NETPIE platform ถ้าเชื่อมต่อสำเร็จ จะมี event ชื่อ CONNECTED เกิดขึ้น ค่าที่ส่งคืนมาจากฟังก์ชั่น มีดังนี้
+* *NETPIECLIENT_CONNECTED* - การเชื่อมต่อสำเร็จ
+* *NETPIECLIENT_NOTCONNECTED* - การเชื่อมต่อล้มเหลว เช่นมีปัญหาเรื่องเครือข่าย
+* *NETPIECLIENT_TOKENERROR* - ไม่ได้รับ access token อาจเป็นเพราะ appid, key หรือ secret ไม่ถูกต้อง
 
 **arguments**
 * *appid* - App ID.

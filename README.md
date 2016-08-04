@@ -170,9 +170,12 @@ Add a callback listener to the event.
 
 ---
 
-**bool MicroGear::connect(char* appid)**
+**int MicroGear::connect(char* appid)**
 
-Connect to NETPIE. If succeed, a CONNECTED event will be fired.
+Connect to NETPIE. If succeed, a CONNECTED event will be fired. The function returns the following code
+* *NETPIECLIENT_CONNECTED* - The connection is successful.
+* *NETPIECLIENT_NOTCONNECTED* - The connection to the broker cannot be initiated. 
+* *NETPIECLIENT_TOKENERROR* - An access token is not issued, may be because an appid, a key or a secret is invalid.
 
 **arguments**
 * *appid* - an App ID.
