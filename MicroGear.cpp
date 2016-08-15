@@ -102,18 +102,19 @@ void MicroGear::initEndpoint(Client *client, char* endpoint) {
         char pstr[100];
         int port = this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT;
 
-        client->connect(GEARAUTHHOST,port);
-        sprintf(pstr,"GET /api/endpoint/%s HTTP/1.1\r\n\r\n",this->gearkey);
-        client->write((const uint8_t *)pstr,strlen(pstr));
+        if(client->connect(GEARAUTHHOST,port)) {
+			sprintf(pstr,"GET /api/endpoint/%s HTTP/1.1\r\n\r\n",this->gearkey);
+			client->write((const uint8_t *)pstr,strlen(pstr));
 
-        delay(1000);
-        getHTTPReply(client,pstr,200);
+			delay(1000);
+			getHTTPReply(client,pstr,200);
 
-        if (strlen(pstr)>6) {
-            strcpy(endpoint,pstr+6);
-            writeEEPROM(endpoint,EEPROM_ENDPOINTSOFFSET,MAXENDPOINTLENGTH);
-        }
-        client->stop();
+			if (strlen(pstr)>6) {
+				strcpy(endpoint,pstr+6);
+				writeEEPROM(endpoint,EEPROM_ENDPOINTSOFFSET,MAXENDPOINTLENGTH);
+			}
+		}
+		client->stop();
     }
 }
 
@@ -123,63 +124,68 @@ void MicroGear::syncTime(Client *client, unsigned long *bts) {
     char hash[32], hashkey[60];
     int port = (this->securemode)?GEARAUTHSECUREPORT:GEARAUTHPORT;
 
-    *bts = 0;
-    client->connect(GEARAUTHHOST,port);
+	*bts = 0;
+	if(client->connect(GEARAUTHHOST,port)) {
+		#ifdef DEBUG_H
+			Serial.println("connect gearauth");
+		#endif
+		if (this->securemode) {
+			WiFiClientSecure *clientsecure = (WiFiClientSecure *)(client);
 
-    if (this->securemode) {
-        WiFiClientSecure *clientsecure = (WiFiClientSecure *)(client);
+			// verify a certificate fingerprint against a fingerprint saved in eeprom
+			readEEPROM(tstr, EEPROM_CERTFINGERPRINT, FINGERPRINTSIZE);
+			#ifdef DEBUG_H
+				Serial.print("fingerprint loaded from eeprom : ");
+				Serial.println(tstr);
+			#endif
+			if (clientsecure->verify(tstr, GEARAUTHHOST)) {
+				#ifdef DEBUG_H
+					Serial.println("fingerprint matched");
+				#endif
+			}
+			else {
+				#ifdef DEBUG_H
+					Serial.println("fingerprint mismatched, going to update");
+				#endif
+				AuthClient::randomString(nonce,8);
+				sprintf(tstr,"GET /api/fingerprint/%s/%s HTTP/1.1\r\n\r\n",this->gearkey,nonce);
+				clientsecure->write((const uint8_t *)tstr,strlen(tstr));
+				delay(800);
+				getHTTPReply(clientsecure,tstr,200);
+				tstr[FINGERPRINTSIZE-1] = '\0';        // split fingerprint and signature
+				sprintf(hashkey,"%s&%s&%s",this->gearkey,this->gearsecret,nonce);
+				Sha1.initHmac((uint8_t*)hashkey,strlen(hashkey));
+				Sha1.HmacBase64(hash, tstr);
+				for (int i=0;i<HMACSIZE;i++)
+					if (hash[i]=='/') hash[i] = '_';
 
-        // verify a certificate fingerprint against a fingerprint saved in eeprom
-        readEEPROM(tstr, EEPROM_CERTFINGERPRINT, FINGERPRINTSIZE);
-        #ifdef DEBUG_H
-            Serial.print("fingerprint loaded from eeprom : ");
-            Serial.println(tstr);
-        #endif
-        if (clientsecure->verify(tstr, GEARAUTHHOST)) {
-            #ifdef DEBUG_H
-                Serial.println("fingerprint matched");
-            #endif
-        }
-        else {
-            #ifdef DEBUG_H
-                Serial.println("fingerprint mismatched, going to update");
-            #endif
-            AuthClient::randomString(nonce,8);
-            sprintf(tstr,"GET /api/fingerprint/%s/%s HTTP/1.1\r\n\r\n",this->gearkey,nonce);
-            clientsecure->write((const uint8_t *)tstr,strlen(tstr));
-            delay(800);
-            getHTTPReply(clientsecure,tstr,200);
-            tstr[FINGERPRINTSIZE-1] = '\0';        // split fingerprint and signature
-            sprintf(hashkey,"%s&%s&%s",this->gearkey,this->gearsecret,nonce);
-            Sha1.initHmac((uint8_t*)hashkey,strlen(hashkey));
-            Sha1.HmacBase64(hash, tstr);
-            for (int i=0;i<HMACSIZE;i++)
-                if (hash[i]=='/') hash[i] = '_';
+				if(strcmp(hash,tstr+FINGERPRINTSIZE)==0) {
+					#ifdef DEBUG_H
+						Serial.println("new fingerprint updated");
+					#endif
+					writeEEPROM(tstr, EEPROM_CERTFINGERPRINT, FINGERPRINTSIZE);
+				}
+				else {
+					#ifdef DEBUG_H
+						Serial.println("fingerprint verification failed, abort");
+					#endif
+					clientsecure->stop();
+					delay(5000);
+					return;
+				}
+			}
+		}
+		strcpy(tstr,"GET /api/time HTTP/1.1\r\n\r\n");
+		client->write((const uint8_t *)tstr,strlen(tstr));
 
-            if(strcmp(hash,tstr+FINGERPRINTSIZE)==0) {
-                #ifdef DEBUG_H
-                    Serial.println("new fingerprint updated");
-                #endif
-                writeEEPROM(tstr, EEPROM_CERTFINGERPRINT, FINGERPRINTSIZE);
-            }
-            else {
-                #ifdef DEBUG_H
-                    Serial.println("fingerprint verification failed, abort");
-                #endif
-                clientsecure->stop();
-                delay(5000);
-                return;
-            }
-        }
+		delay(1000);
+		getHTTPReply(client,tstr,200);
+		*bts = atol(tstr) - millis()/1000;
+		client->stop();
     }
-
-    strcpy(tstr,"GET /api/time HTTP/1.1\r\n\r\n");
-    client->write((const uint8_t *)tstr,strlen(tstr));
-
-    delay(1000);
-    getHTTPReply(client,tstr,200);
-    *bts = atol(tstr) - millis()/1000;
-    client->stop();
+	#ifdef DEBUG_H
+		Serial.println("synctime done");
+	#endif
 }
 
 MicroGear::MicroGear(Client& netclient ) {
@@ -259,19 +265,20 @@ void MicroGear::resetToken() {
                 char revokecode[REVOKECODESIZE+1];
                 int port = this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT;
                 
-                sockclient->connect(GEARAUTHHOST,port);
-                readEEPROM(token,EEPROM_TOKENOFFSET,TOKENSIZE);
-                readEEPROM(revokecode,EEPROM_REVOKECODEOFFSET,REVOKECODESIZE);
-                sprintf(pstr,"GET /api/revoke/%s/%s HTTP/1.1\r\n\r\n",token,revokecode);
-                sockclient->write((const uint8_t *)pstr,strlen(pstr));
+                if(sockclient->connect(GEARAUTHHOST,port)) {
+					readEEPROM(token,EEPROM_TOKENOFFSET,TOKENSIZE);
+					readEEPROM(revokecode,EEPROM_REVOKECODEOFFSET,REVOKECODESIZE);
+					sprintf(pstr,"GET /api/revoke/%s/%s HTTP/1.1\r\n\r\n",token,revokecode);
+					sockclient->write((const uint8_t *)pstr,strlen(pstr));
 
-                delay(1000);
-                getHTTPReply(sockclient,pstr,200);
+					delay(1000);
+					getHTTPReply(sockclient,pstr,200);
 
-                if (strcmp(pstr,"FAILED")!=0) {    
-                    *state = EEPROM_STATE_NUL;
-                    writeEEPROM(state,EEPROM_STATEOFFSET,1);
-                }
+					if (strcmp(pstr,"FAILED")!=0) {    
+						*state = EEPROM_STATE_NUL;
+						writeEEPROM(state,EEPROM_STATEOFFSET,1);
+					}
+				}
                 sockclient->stop();
             }
             else { 
@@ -347,6 +354,7 @@ void MicroGear::getToken(char *gkey, char *galias, char* token, char* tokensecre
                     Serial.println("authclient is disconnected");
                 #endif
                 delay(2000);
+                return false;
             }    
         } while (!authstatus);
     }
@@ -376,6 +384,7 @@ void MicroGear::getToken(char *gkey, char *galias, char* token, char* tokensecre
                     #endif
 	                authclient->stop();
                     delay(1000);
+					break;
                 }
             }
             #ifdef DEBUG_H
@@ -463,94 +472,95 @@ bool MicroGear::connectBroker(char* appid) {
     char endpoint[MAXENDPOINTLENGTH+1];
     int gbport;
 
-    do {
-        syncTime(sockclient, &bootts);
-    } while (bootts == 0);
+    syncTime(sockclient, &bootts);
 
     #ifdef DEBUG_H
         Serial.print("Time stamp : ");
         Serial.println(bootts);
     #endif
 
-    this->appid = appid;
-    topicprefixlen = strlen(appid)+1;
+	if(bootts!=0){
+		this->appid = appid;
+		topicprefixlen = strlen(appid)+1;
 
-    if (mqttclient) {
-        // recently disconnected with code 4
-        if (mqttclient->state() == 4) {
-            resetToken();
-        }
-        delete(mqttclient);
-    }
+		if (mqttclient) {
+			// recently disconnected with code 4
+			if (mqttclient->state() == 4) {
+				resetToken();
+			}
+			delete(mqttclient);
+		}
 
-    if (authclient) delete(authclient);
-    authclient = new AuthClient(*sockclient);
-    authclient->init(appid,scope,bootts);
-    getToken(this->gearkey,this->gearalias,token,tokensecret,endpoint);
-    delete(authclient);
-    authclient = NULL;
+		if (authclient) delete(authclient);
+		authclient = new AuthClient(*sockclient);
+		authclient->init(appid,scope,bootts);
+		getToken(this->gearkey,this->gearalias,token,tokensecret,endpoint);
+		delete(authclient);
+		authclient = NULL;
 
-    /* if endpoint is empty, request a new one */
-    initEndpoint(sockclient, endpoint);
+		/* if endpoint is empty, request a new one */
+		initEndpoint(sockclient, endpoint);
 
-    /* generate one-time user/password */
-    sprintf(username,"%s%%%s%%%lu",token,gearkey,bootts+millis()/1000);
-    sprintf(buff,"%s&%s",tokensecret,gearsecret);
-    Sha1.initHmac((uint8_t*)buff,strlen(buff));
-    Sha1.HmacBase64(password, username);
-    
-    if (*token && *tokensecret) {
-        #ifdef DEBUG_H
-            Serial.println("Going to connect to MQTT broker");
-            Serial.println(token);
-            Serial.println(username);
-            Serial.println(password);
-            Serial.println(endpoint);
-        #endif
+		/* generate one-time user/password */
+		sprintf(username,"%s%%%s%%%lu",token,gearkey,bootts+millis()/1000);
+		sprintf(buff,"%s&%s",tokensecret,gearsecret);
+		Sha1.initHmac((uint8_t*)buff,strlen(buff));
+		Sha1.HmacBase64(password, username);
+		
+		if (*token && *tokensecret) {
+			#ifdef DEBUG_H
+				Serial.println("Going to connect to MQTT broker");
+				Serial.println(token);
+				Serial.println(username);
+				Serial.println(password);
+				Serial.println(endpoint);
+			#endif
 
-        char *p = endpoint;
-        while (*p!='\0') {
-            if (*p == ':') {
-                *p = '\0';
-                p++;
-                break;
-            }
-            p++;
-        }
+			char *p = endpoint;
+			while (*p!='\0') {
+				if (*p == ':') {
+					*p = '\0';
+					p++;
+					break;
+				}
+				p++;
+			}
 
-        gbport = this->securemode?GBSECUREPORT:GBPORT;
-        mqttclient = new PubSubClient(endpoint, gbport, msgCallback, *sockclient);
-        #ifdef DEBUG_H
-            Serial.print("Connecting to : ");
-            Serial.print(endpoint);
-            Serial.print(":");
-            Serial.println(gbport);
-        #endif
-        delay(500);
-        
-        constate = this->mqttclient->connect(token,username+TOKENSIZE+1,password);
-        switch (constate) {
-            case CLIENT_CONNECTED :
-                    backoff = MINBACKOFFTIME;
-                    if (cb_present)
-                        subscribe("/&present");
-                    if (cb_absent)
-                        subscribe("/&absent");
+			gbport = this->securemode?GBSECUREPORT:GBPORT;
+			mqttclient = new PubSubClient(endpoint, gbport, msgCallback, *sockclient);
+			#ifdef DEBUG_H
+				Serial.print("Connecting to : ");
+				Serial.print(endpoint);
+				Serial.print(":");
+				Serial.println(gbport);
+			#endif
+			delay(500);
+			
+			constate = this->mqttclient->connect(token,username+TOKENSIZE+1,password);
+			switch (constate) {
+				case CLIENT_CONNECTED :
+						backoff = MINBACKOFFTIME;
+						if (cb_present)
+							subscribe("/&present");
+						if (cb_absent)
+							subscribe("/&absent");
 
-                    sprintf(buff,"/&id/%s/#",token);
-                    subscribe(buff);
+						sprintf(buff,"/&id/%s/#",token);
+						subscribe(buff);
 
-                    if (cb_connected)
-                        cb_connected(NULL,NULL,0);
-                    break;
-            case CLIENT_NOTCONNECT :
-                    if (backoff < MAXBACKOFFTIME) backoff = 2*backoff;
-                    delay(backoff);
-                    break;
-        }
-        return constate;
-    }
-    else return false;
+						if (cb_connected)
+							cb_connected(NULL,NULL,0);
+						break;
+				case CLIENT_NOTCONNECT :
+						if (backoff < MAXBACKOFFTIME) backoff = 2*backoff;
+						delay(backoff);
+						break;
+			}
+			return constate;
+		}
+		else return false;
+	}
+	else return false;
 }
 
 void MicroGear::useTLS(bool usetls) {
