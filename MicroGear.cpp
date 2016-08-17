@@ -38,32 +38,30 @@ void msgCallback(char* topic, uint8_t* payload, unsigned int length) {
 
 bool MicroGear::clientReadln(Client* client, char *buffer, size_t buflen) {
     size_t pos = 0;
-    while (true) {
-        while (true) {
-            uint8_t byte = client->read();
-            if (byte == '\n') {
-                // EOF found.
-                if (pos < buflen) {
-                    if (pos > 0 && buffer[pos - 1] == '\r')
-                    pos--;
-                    buffer[pos] = '\0';
-                }
-                else {
-                    buffer[buflen - 1] = '\0';
-                }
-                return true;
-            }
 
-            if (byte != 255) {
-                if (pos < buflen) buffer[pos++] = byte;
+    while (true) {
+        uint8_t byte = client->read();
+        if (byte == '\n') {
+            // EOF found.
+            if (pos < buflen) {
+                if (pos > 0 && buffer[pos - 1] == '\r')
+                pos--;
+                buffer[pos] = '\0';
             }
-            else{
-                buffer[pos++] = '\0';
-                return true; 
-            } 
+            else {
+                buffer[buflen - 1] = '\0';
+            }
+            return true;
         }
+
+        if (byte != 255) {
+            if (pos < buflen) buffer[pos++] = byte;
+        }
+        else{
+            buffer[pos++] = '\0';
+            return false; 
+        } 
     }
-    return false;
 }
 
 int MicroGear::getHTTPReply(Client *client, char *buff, size_t buffsize) {
@@ -102,7 +100,7 @@ void MicroGear::initEndpoint(Client *client, char* endpoint) {
         char pstr[100];
         int port = this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT;
 
-        if(client->connect(GEARAUTHHOST,port)) {
+        if(client->connect(GEARAUTHHOST,port)){
 			sprintf(pstr,"GET /api/endpoint/%s HTTP/1.1\r\n\r\n",this->gearkey);
 			client->write((const uint8_t *)pstr,strlen(pstr));
 
@@ -113,8 +111,8 @@ void MicroGear::initEndpoint(Client *client, char* endpoint) {
 				strcpy(endpoint,pstr+6);
 				writeEEPROM(endpoint,EEPROM_ENDPOINTSOFFSET,MAXENDPOINTLENGTH);
 			}
+			client->stop();
 		}
-		client->stop();
     }
 }
 
@@ -124,11 +122,9 @@ void MicroGear::syncTime(Client *client, unsigned long *bts) {
     char hash[32], hashkey[60];
     int port = (this->securemode)?GEARAUTHSECUREPORT:GEARAUTHPORT;
 
-	*bts = 0;
-	if(client->connect(GEARAUTHHOST,port)) {
-		#ifdef DEBUG_H
-			Serial.println("connect gearauth");
-		#endif
+    *bts = 0;
+    if(client->connect(GEARAUTHHOST,port)){
+
 		if (this->securemode) {
 			WiFiClientSecure *clientsecure = (WiFiClientSecure *)(client);
 
@@ -175,6 +171,7 @@ void MicroGear::syncTime(Client *client, unsigned long *bts) {
 				}
 			}
 		}
+
 		strcpy(tstr,"GET /api/time HTTP/1.1\r\n\r\n");
 		client->write((const uint8_t *)tstr,strlen(tstr));
 
@@ -182,15 +179,12 @@ void MicroGear::syncTime(Client *client, unsigned long *bts) {
 		getHTTPReply(client,tstr,200);
 		*bts = atol(tstr) - millis()/1000;
 		client->stop();
-    }
-	#ifdef DEBUG_H
-		Serial.println("synctime done");
-	#endif
+	}
 }
 
 MicroGear::MicroGear(Client& netclient ) {
     sockclient = &netclient;
-    constate = CLIENT_NOTCONNECT;
+    constate = MQTTCLIENT_NOTCONNECTED;
     authclient = NULL;
 	mqttclient = NULL;
 
@@ -265,7 +259,7 @@ void MicroGear::resetToken() {
                 char revokecode[REVOKECODESIZE+1];
                 int port = this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT;
                 
-                if(sockclient->connect(GEARAUTHHOST,port)) {
+                if(sockclient->connect(GEARAUTHHOST,port)){
 					readEEPROM(token,EEPROM_TOKENOFFSET,TOKENSIZE);
 					readEEPROM(revokecode,EEPROM_REVOKECODEOFFSET,REVOKECODESIZE);
 					sprintf(pstr,"GET /api/revoke/%s/%s HTTP/1.1\r\n\r\n",token,revokecode);
@@ -278,8 +272,8 @@ void MicroGear::resetToken() {
 						*state = EEPROM_STATE_NUL;
 						writeEEPROM(state,EEPROM_STATEOFFSET,1);
 					}
+					sockclient->stop();
 				}
-                sockclient->stop();
             }
             else { 
                 *state = EEPROM_STATE_NUL;
@@ -289,7 +283,7 @@ void MicroGear::resetToken() {
 }
 
 
-void MicroGear::getToken(char *gkey, char *galias, char* token, char* tokensecret, char *endpoint) {
+bool MicroGear::getToken(char *gkey, char *galias, char* token, char* tokensecret, char *endpoint) {
     char state[2], tstate[2];
     int authstatus = 0;
 
@@ -353,7 +347,7 @@ void MicroGear::getToken(char *gkey, char *galias, char* token, char* tokensecre
                 #ifdef DEBUG_H
                     Serial.println("authclient is disconnected");
                 #endif
-                delay(2000);
+                //delay(2000);
                 return false;
             }    
         } while (!authstatus);
@@ -440,7 +434,7 @@ void MicroGear::getToken(char *gkey, char *galias, char* token, char* tokensecre
                 }
             }
         }while (*state == EEPROM_STATE_REQ);
-            // reset accesstoken retry counter
+        // reset accesstoken retry counter
         retry = RETRY;
         #ifdef DEBUG_H
             Serial.println(authstatus); Serial.println(token); Serial.println(tokensecret); Serial.println(endpoint);
@@ -453,17 +447,20 @@ void MicroGear::getToken(char *gkey, char *galias, char* token, char* tokensecre
         readEEPROM(tokensecret,EEPROM_TOKENSECRETOFFSET,TOKENSECRETSIZE);
         readEEPROM(endpoint,EEPROM_ENDPOINTSOFFSET,MAXENDPOINTLENGTH);
     }
+    
+    authclient->stop();
 
     if (*state != EEPROM_STATE_ACC) {
         #ifdef DEBUG_H
             Serial.println("Fail to get a token.");
         #endif
-        delay(2000);
+        //delay(2000);
+        return false;
     }
-    authclient->stop();
+    return true;
 }
 
-bool MicroGear::connectBroker(char* appid) {
+int MicroGear::connectBroker(char* appid) {
     char username[USERNAMESIZE+1];
     char password[PASSWORDSIZE+1];
     char buff[2*TOKENSECRETSIZE+2];
@@ -471,6 +468,7 @@ bool MicroGear::connectBroker(char* appid) {
     char tokensecret[TOKENSECRETSIZE+1];
     char endpoint[MAXENDPOINTLENGTH+1];
     int gbport;
+    bool tokenOK;
 
     syncTime(sockclient, &bootts);
 
@@ -479,96 +477,96 @@ bool MicroGear::connectBroker(char* appid) {
         Serial.println(bootts);
     #endif
 
-	if(bootts!=0){
-		this->appid = appid;
-		topicprefixlen = strlen(appid)+1;
+    this->appid = appid;
+    topicprefixlen = strlen(appid)+1;
 
-		if (mqttclient) {
-			// recently disconnected with code 4
-			if (mqttclient->state() == 4) {
-				resetToken();
-			}
-			delete(mqttclient);
-		}
+    if (mqttclient) {
+        // recently disconnected with code 4
+        if (mqttclient->state() == 4) {
+            resetToken();
+        }
+        delete(mqttclient);
+    }
 
-		if (authclient) delete(authclient);
-		authclient = new AuthClient(*sockclient);
-		authclient->init(appid,scope,bootts);
-		getToken(this->gearkey,this->gearalias,token,tokensecret,endpoint);
-		delete(authclient);
-		authclient = NULL;
+    if (authclient) delete(authclient);
+    authclient = new AuthClient(*sockclient);
+    authclient->init(appid,scope,bootts);
+    
+    tokenOK = getToken(this->gearkey,this->gearalias,token,tokensecret,endpoint);
+    delete(authclient);
+    authclient = NULL;
+    
+    if (tokenOK && *token && *tokensecret) {
 
-		/* if endpoint is empty, request a new one */
-		initEndpoint(sockclient, endpoint);
+        /* if endpoint is empty, request a new one */
+        initEndpoint(sockclient, endpoint);
 
-		/* generate one-time user/password */
-		sprintf(username,"%s%%%s%%%lu",token,gearkey,bootts+millis()/1000);
-		sprintf(buff,"%s&%s",tokensecret,gearsecret);
-		Sha1.initHmac((uint8_t*)buff,strlen(buff));
-		Sha1.HmacBase64(password, username);
-		
-		if (*token && *tokensecret) {
-			#ifdef DEBUG_H
-				Serial.println("Going to connect to MQTT broker");
-				Serial.println(token);
-				Serial.println(username);
-				Serial.println(password);
-				Serial.println(endpoint);
-			#endif
+        /* generate one-time user/password */
+        sprintf(username,"%s%%%s%%%lu",token,gearkey,bootts+millis()/1000);
+        sprintf(buff,"%s&%s",tokensecret,gearsecret);
+        Sha1.initHmac((uint8_t*)buff,strlen(buff));
+        Sha1.HmacBase64(password, username);
 
-			char *p = endpoint;
-			while (*p!='\0') {
-				if (*p == ':') {
-					*p = '\0';
-					p++;
-					break;
-				}
-				p++;
-			}
+        #ifdef DEBUG_H
+            Serial.println("Going to connect to MQTT broker");
+            Serial.println(token);
+            Serial.println(username);
+            Serial.println(password);
+            Serial.println(endpoint);
+        #endif
 
-			gbport = this->securemode?GBSECUREPORT:GBPORT;
-			mqttclient = new PubSubClient(endpoint, gbport, msgCallback, *sockclient);
-			#ifdef DEBUG_H
-				Serial.print("Connecting to : ");
-				Serial.print(endpoint);
-				Serial.print(":");
-				Serial.println(gbport);
-			#endif
-			delay(500);
-			
-			constate = this->mqttclient->connect(token,username+TOKENSIZE+1,password);
-			switch (constate) {
-				case CLIENT_CONNECTED :
-						backoff = MINBACKOFFTIME;
-						if (cb_present)
-							subscribe("/&present");
-						if (cb_absent)
-							subscribe("/&absent");
+        char *p = endpoint;
+        while (*p!='\0') {
+            if (*p == ':') {
+                *p = '\0';
+                p++;
+                break;
+            }
+            p++;
+        }
 
-						sprintf(buff,"/&id/%s/#",token);
-						subscribe(buff);
+        gbport = this->securemode?GBSECUREPORT:GBPORT;
+        mqttclient = new PubSubClient(endpoint, gbport, msgCallback, *sockclient);
+        #ifdef DEBUG_H
+            Serial.print("Connecting to : ");
+            Serial.print(endpoint);
+            Serial.print(":");
+            Serial.println(gbport);
+        #endif
+        delay(500);
+        
+        constate = this->mqttclient->connect(token,username+TOKENSIZE+1,password);
+        switch (constate) {
+            case MQTTCLIENT_CONNECTED :
+                    backoff = MINBACKOFFTIME;
+                    if (cb_present)
+                        subscribe("/&present");
+                    if (cb_absent)
+                        subscribe("/&absent");
 
-						if (cb_connected)
-							cb_connected(NULL,NULL,0);
-						break;
-				case CLIENT_NOTCONNECT :
-						if (backoff < MAXBACKOFFTIME) backoff = 2*backoff;
-						delay(backoff);
-						break;
-			}
-			return constate;
-		}
-		else return false;
-	}
-	else return false;
+                    sprintf(buff,"/&id/%s/#",token);
+                    subscribe(buff);
+
+                    if (cb_connected)
+                        cb_connected(NULL,NULL,0);
+
+                    return NETPIECLIENT_CONNECTED;
+
+            case MQTTCLIENT_NOTCONNECTED :
+                    if (backoff < MAXBACKOFFTIME) backoff = 2*backoff;
+                    delay(backoff);
+                    return NETPIECLIENT_NOTCONNECTED;
+        }
+    }
+    else return NETPIECLIENT_TOKENERROR;
 }
 
 void MicroGear::useTLS(bool usetls) {
     this->securemode = usetls;
 }
 
-bool MicroGear::connect(char* appid) {
-    connectBroker(appid);
+int MicroGear::connect(char* appid) {
+    return connectBroker(appid);
 }
 
 bool MicroGear::connected() {
