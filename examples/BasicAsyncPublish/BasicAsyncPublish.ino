@@ -30,12 +30,6 @@ void onMsghandler(char *topic, uint8_t* msg, unsigned int msglen) {
   Serial.print(_msg);
   Serial.printf(" at [%lu] \r\n", millis());
 
-  if (_msg == "ON") {
-    Serial.println("TURN ON GPIO");
-  }
-  else if (_msg == "OFF") {
-    Serial.println("TURN OFF GPIO");
-  }
 }
 
 void onFoundgear(char *attribute, uint8_t* msg, unsigned int msglen) {
