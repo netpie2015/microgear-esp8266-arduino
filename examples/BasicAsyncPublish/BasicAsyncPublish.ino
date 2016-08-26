@@ -40,22 +40,29 @@ void onMsghandler(char *topic, uint8_t* msg, unsigned int msglen) {
 
 void onFoundgear(char *attribute, uint8_t* msg, unsigned int msglen) {
   Serial.print("Found new member --> ");
-  for (int i = 0; i < msglen; i++)
+  for (int i = 0; i < msglen; i++) {
     Serial.print((char)msg[i]);
+  }
   Serial.println();
 }
 
 void onLostgear(char *attribute, uint8_t* msg, unsigned int msglen) {
   Serial.print("Lost member --> ");
-  for (int i = 0; i < msglen; i++)
+  for (int i = 0; i < msglen; i++) {
     Serial.print((char)msg[i]);
+  }
   Serial.println();
 }
 
 /* When a microgear is connected, do this */
 void onConnected(char *attribute, uint8_t* msg, unsigned int msglen) {
   Serial.println("Connected to NETPIE...");
-  /* Set the alias of this microgear ALIAS */
+  /*
+    microgear can set its own alias, which to be used for others make a function call chat(). 
+    The alias will appear on the key management portal of netpie.io
+  */
+  
+  /* Set the alias of this microgear ALIAS */  
   microgear.setAlias(ALIAS);
 }
 
