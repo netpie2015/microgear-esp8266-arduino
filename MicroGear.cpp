@@ -710,11 +710,11 @@ bool MicroGear::writeFeed(char* feedname, String data, char* apikey) {
     char buff[MAXBUFFSIZE];
     data.toCharArray(buff,MAXBUFFSIZE-1);
     
-    return writeFeed(feedname, data,apikey);
+    return writeFeed(feedname, buff, apikey);
 }
 
 bool MicroGear::writeFeed(char* feedname, String data) {
-    return writeFeed(feedname, data,NULL);
+    return writeFeed(feedname, data, NULL);
 }
 
 /*
