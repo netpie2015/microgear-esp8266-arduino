@@ -256,6 +256,7 @@ cancel subscription
 **void microgear.writeFeed (char* feedid, char *datajson, char *apikey)**<br/>
 **void microgear.writeFeed (char* feedid, String datajson)**<br/>
 **void microgear.writeFeed (char* feedid, String datajson, char *apikey)**<br/>
+
 write time series data to a feed storage
 
 **arguments**
