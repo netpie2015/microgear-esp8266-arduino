@@ -119,6 +119,9 @@ class MicroGear {
 		bool publish(char*, int, bool);
 		bool publish(char*, String);
 		bool publish(char*, String, bool);
+		bool publish(char*, String, String);
+		bool publish(char*, String, char*);
+		bool writeFeed(char*, String, char*);
 
 		bool chat(char*, char*);
 		bool chat(char*, int);
