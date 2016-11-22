@@ -67,6 +67,8 @@
 #define ABSENT                     3
 #define CONNECTED                  4
 #define CALLBACK                   5
+#define ERROR          		       6
+#define INFO                  	   7
 
 
 class MicroGear {
@@ -119,6 +121,13 @@ class MicroGear {
 		bool publish(char*, int, bool);
 		bool publish(char*, String);
 		bool publish(char*, String, bool);
+		bool publish(char*, String, String);
+		bool publish(char*, String, char*);
+
+		bool writeFeed(char*, char*);
+		bool writeFeed(char*, char*, char*);
+		bool writeFeed(char*, String);
+		bool writeFeed(char*, String, char*);
 
 		bool chat(char*, char*);
 		bool chat(char*, int);
