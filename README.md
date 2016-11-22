@@ -252,10 +252,10 @@ cancel subscription
 * *topic* - name of topic to be send a message to.
 
 ---
-**void microgear.writeFeed (char* feedid, char *datajson)**
-**void microgear.writeFeed (char* feedid, char *datajson, char *apikey)**
-**void microgear.writeFeed (char* feedid, String *datajson)**
-**void microgear.writeFeed (char* feedid, String *datajson, char *apikey)**
+**void microgear.writeFeed (char* feedid, char *datajson)**<br/>
+**void microgear.writeFeed (char* feedid, char *datajson, char *apikey)**<br/>
+**void microgear.writeFeed (char* feedid, String datajson)**<br/>
+**void microgear.writeFeed (char* feedid, String datajson, char *apikey)**<br/>
 write time series data to a feed storage
 
 **arguments**
