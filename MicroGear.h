@@ -54,8 +54,12 @@
 #define MICROGEAR_REJECTED         2
 #define RETRY                      3
 
-#define CLIENT_NOTCONNECT          0
-#define CLIENT_CONNECTED           1
+#define MQTTCLIENT_NOTCONNECTED    0
+#define MQTTCLIENT_CONNECTED       1
+
+#define NETPIECLIENT_CONNECTED     0
+#define NETPIECLIENT_NOTCONNECTED  1
+#define NETPIECLIENT_TOKENERROR    2
 
 /* Event Type */
 #define MESSAGE                    1
@@ -63,13 +67,15 @@
 #define ABSENT                     3
 #define CONNECTED                  4
 #define CALLBACK                   5
+#define ERROR          		       6
+#define INFO                  	   7
 
 
 class MicroGear {
 	private:
         char* appid;
 		char* gearname;
-		char* gearkey;
+		char* gearkey;	
         char* gearsecret;
         char* gearalias;
         char* scope;
@@ -86,12 +92,12 @@ class MicroGear {
 		MQTTClient *mqttclient;
 		Client *sockclient;
 
-		bool connectBroker(char*);
+		int connectBroker(char*);
 		int getHTTPReply(Client*, char*, size_t);
 		bool clientReadln(Client*, char*, size_t);
 		void syncTime(Client*, unsigned long*);
 		void initEndpoint(Client*, char*);
-    void getToken(char*, char*, char*, char*, char*);
+        bool getToken(char*, char*, char*, char*, char*);
 
 	public:
 		int constate;
@@ -101,7 +107,7 @@ class MicroGear {
 		void setName(char*);
 		void setAlias(char*);
 		void useTLS(bool);
-		bool connect(char*);
+		int connect(char*);
 		bool connected();
 
 		bool publish(char*, char*);
@@ -115,6 +121,13 @@ class MicroGear {
 		bool publish(char*, int, bool);
 		bool publish(char*, String);
 		bool publish(char*, String, bool);
+		bool publish(char*, String, String);
+		bool publish(char*, String, char*);
+
+		bool writeFeed(char*, char*);
+		bool writeFeed(char*, char*, char*);
+		bool writeFeed(char*, String);
+		bool writeFeed(char*, String, char*);
 
 		bool chat(char*, char*);
 		bool chat(char*, int);

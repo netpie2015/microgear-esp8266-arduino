@@ -7,6 +7,8 @@ void (* cb_message)(char*, uint8_t*,unsigned int);
 void (* cb_present)(char*, uint8_t*,unsigned int);
 void (* cb_absent)(char*, uint8_t*,unsigned int);
 void (* cb_connected)(char*, uint8_t*,unsigned int);
+void (* cb_error)(char*, uint8_t*,unsigned int);
+void (* cb_info)(char*, uint8_t*,unsigned int);
 
 void msgCallback(char* topic, uint8_t* payload, unsigned int length) {
     /* remove /appid/ */
@@ -29,6 +31,18 @@ void msgCallback(char* topic, uint8_t* payload, unsigned int length) {
                 Serial.println("to reset endpoint");
             #endif
             if (mg) mg->resetEndpoint();
+        }
+    }
+    else if (*topic == '@') {
+        if (strcmp(topic,"@error")==0) {
+            if (cb_error)  {
+                cb_error("error",payload,length);
+            }
+        }
+        else if (strcmp(topic,"@info")==0) {
+            if (cb_info)  {
+                cb_info("info",payload,length);
+            }
         }
     }
     else if (cb_message) {
@@ -200,6 +214,9 @@ MicroGear::MicroGear(Client& netclient ) {
     cb_connected = NULL;
     cb_absent = NULL;
     cb_present = NULL;
+    cb_error = NULL;
+    cb_info = NULL;
+
     eepromready = false;
 
     mg = (MicroGear *)this;
@@ -222,6 +239,13 @@ void MicroGear::on(unsigned char event, void (* callback)(char*, uint8_t*,unsign
                 break;
         case CONNECTED : 
                 if (callback) cb_connected = callback;
+                break;
+        case ERROR : 
+                if (callback) cb_error = callback;
+                break;
+        case INFO : 
+                if (callback) cb_info = callback;
+                break;
     }
 }
 
@@ -635,8 +659,62 @@ bool MicroGear::publish(char* topic, String message) {
 
 bool MicroGear::publish(char* topic, String message, bool retained) {
     char buff[MAXBUFFSIZE];
-    message.toCharArray(buff,MAXBUFFSIZE);
+    message.toCharArray(buff,MAXBUFFSIZE-1);
     return publish(topic, buff, retained);
+}
+
+bool MicroGear::publish(char* topic, String message, String apikey) {
+    char buff[MAXBUFFSIZE];
+    message.toCharArray(buff,MAXBUFFSIZE-1);
+    
+	char top[MAXTOPICSIZE] = "";
+	strcat(top,topic);
+	if(apikey!=""){
+		strcat(top,"/");
+		char buffapikey[MAXBUFFSIZE];
+		apikey.toCharArray(buffapikey,MAXBUFFSIZE);
+		strcat(top,buffapikey);
+	}
+    return publish(top, buff);
+}
+
+bool MicroGear::publish(char* topic, String message, char* apikey) {
+    char buff[MAXBUFFSIZE];
+    message.toCharArray(buff,MAXBUFFSIZE-1);
+    
+	char top[MAXTOPICSIZE] = "";
+	strcat(top,topic);
+	if(apikey!=""){
+		strcat(top,"/");
+		strcat(top,apikey);
+	}
+    return publish(top, buff);
+}
+
+bool MicroGear::writeFeed(char* feedname, char *data, char* apikey) {
+    char buff[MAXBUFFSIZE] = "/@writefeed/";
+    
+	strcat(buff,feedname);
+	if(apikey!=NULL && strlen(apikey)>0){
+		strcat(buff,"/");
+		strcat(buff,apikey);
+	}
+    return publish(buff, data);
+}
+
+bool MicroGear::writeFeed(char* feedname, char *data) {
+    return writeFeed(feedname, data, NULL);
+}
+
+bool MicroGear::writeFeed(char* feedname, String data, char* apikey) {
+    char buff[MAXBUFFSIZE];
+    data.toCharArray(buff,MAXBUFFSIZE-1);
+    
+    return writeFeed(feedname, data,apikey);
+}
+
+bool MicroGear::writeFeed(char* feedname, String data) {
+    return writeFeed(feedname, data,NULL);
 }
 
 /*

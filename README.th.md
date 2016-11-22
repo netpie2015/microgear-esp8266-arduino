@@ -38,7 +38,6 @@ const char* password = <WIFI_KEY>;
 #define ALIAS   "esp8266"
 
 WiFiClient client;
-AuthClient *authclient;
 
 int timer = 0;
 MicroGear microgear(client);
@@ -166,19 +165,19 @@ microgear.init("sXfqDcXHzbFXiLk", "DNonzg2ivwS8ceksykGntrfQjxbL98", "myplant");
 
 **bool MicroGear::connect(char* appid)**
 
-เชื่อต่อกับ NETPIE platform ถ้าเชื่อมต่อสำเร็จ จะมี event ชื่อ CONNECTED เกิดขึ้น
+เชื่อต่อกับ NETPIE platform ถ้าเชื่อมต่อสำเร็จ จะมี event ชื่อ CONNECTED เกิดขึ้น ค่าที่ส่งคืนมาจากฟังก์ชั่น มีดังนี้
+* *NETPIECLIENT_CONNECTED* - การเชื่อมต่อสำเร็จ
+* *NETPIECLIENT_NOTCONNECTED* - การเชื่อมต่อล้มเหลว เช่นมีปัญหาเรื่องเครือข่าย
+* *NETPIECLIENT_TOKENERROR* - ไม่ได้รับ access token อาจเป็นเพราะ appid, key หรือ secret ไม่ถูกต้อง
 
 **arguments**
-* *appidt* - App ID.
+* *appid* - App ID.
 
 ---
 
-**bool MicroGear::connected(char* appid)**
+**bool MicroGear::connected()**
 
 ส่งค่าสถานะการเชื่อมต่อ เป็น true หากกำลังเชื่อมต่ออยู่
-
-**arguments**
-* *appidt* - App ID.
 
 ---
 
@@ -191,21 +190,31 @@ microgear สามารถตั้งนามแฝงของตัวเ�
 
 ---
 
-**void MicroGear::chat(char* target, char* message)**
-
+**bool MicroGear::chat(char* target, char* message)**<br/>
+**bool MicroGear::chat(char* target, int message)**<br/>
+**bool MicroGear::chat(char* target, double message)**<br/>
+**bool MicroGear::chat(char* target, double, int decimal)**<br/>
+**bool MicroGear::chat(char* target, String message)**<br/>
+		
 **arguments**
 * *target* - ชื่อของ microgear ที่ต้องการจะส่งข้อความไปถึง
+* *decimal* - จำนวนตำแหน่งหลังจุดทศนิยม
 * *message* - ข้อความ
 
 ---
 
-**void MicroGear::publish(char* topic, char* message [, bool retained])**
+**bool MicroGear::publish(char* topic, char* message [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, double message [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, double message, int decimal [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, int message [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, String message [, bool retained])**<br/>
 
 ในกรณีที่ต้องการส่งข้อความแบบไม่เจาะจงผู้รับ สามารถใช้ฟังชั่น publish ไปยัง topic ที่กำหนดได้ ซึ่งจะมีแต่ microgear ที่ subscribe topoic นี้เท่านั้น ที่จะได้รับข้อความ
 
 **arguments**
 * *topic* - ชื่อของ topic ที่ต้องการจะส่งข้อความไปถึง
 * *message* - ข้อความ
+* *decimal* - จำนวนตำแหน่งหลังจุดทศนิยม
 * *retained* - ให้ retain ข้อความไว้หรือไม่ default เป็น false (optional)
 
 ---
@@ -227,6 +236,22 @@ microgear อาจจะมีความสนใจใน topic ใดเป
 * *topic* - ชื่อของ topic ที่ต้องการจะส่งข้อความไปถึง
 
 ---
+**void microgear.writeFeed (char* feedid, char *datajson)**<br/>
+**void microgear.writeFeed (char* feedid, char *datajson, char *apikey)**<br/>
+**void microgear.writeFeed (char* feedid, String datajson)**<br/>
+**void microgear.writeFeed (char* feedid, String datajson, char *apikey)**<br/>
+เขียนข้อมูลลง feed storage
+
+**arguments**
+* *feedid* - ชื่อของ feed ที่ต้องการจะเขียนข้อมูล 
+* *datajson* - ข้อมูลที่จะบันทึก ในรูปแบบ json 
+* *apikey* - apikey สำหรับตรวจสอบสิทธิ์ หากไม่กำหนด จะใช้ default apikey ของ feed ที่ให้สิทธิ์ไว้กับ AppID
+
+```js
+microgear.writeFeed("homesensor","{temp:25.7,humid:62.8,light:8.5}");
+```
+---
+
 
 **void MicroGear::resetToken()**
 

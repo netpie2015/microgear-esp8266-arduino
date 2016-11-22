@@ -45,7 +45,6 @@ const char* password = <WIFI_KEY>;
 #define ALIAS   "esp8266"
 
 WiFiClient client;
-AuthClient *authclient;
 
 int timer = 0;
 MicroGear microgear(client);
@@ -171,21 +170,21 @@ Add a callback listener to the event.
 
 ---
 
-**bool MicroGear::connect(char* appid)**
+**int MicroGear::connect(char* appid)**
 
-Connect to NETPIE. If succeed, a CONNECTED event will be fired.
+Connect to NETPIE. If succeed, a CONNECTED event will be fired. The function returns the following code
+* *NETPIECLIENT_CONNECTED* - The connection is successful.
+* *NETPIECLIENT_NOTCONNECTED* - The connection to the broker cannot be initiated. 
+* *NETPIECLIENT_TOKENERROR* - An access token is not issued, may be because an appid, a key or a secret is invalid.
 
 **arguments**
-* *appidt* - an App ID.
+* *appid* - an App ID.
 
 ---
 
-**bool MicroGear::connected(char* appid)**
+**bool MicroGear::connected()**
 
 Check the connection status, return true if it is connected.
-
-**arguments**
-* *appidt* - an App ID.
 
 ---
 
@@ -207,11 +206,11 @@ microgear can set its own alias, which to be used for others make a function cal
 
 ---
 
-**bool MicroGear::chat(char* target, char* message)**<br />
-**bool chat(char* target, int message);**<br />
-**bool chat(char* target, double message);**<br />
-**bool chat(char* target, double, int decimal);**<br />
-**bool chat(char* target, String message);**<br />
+**bool MicroGear::chat(char* target, char* message)**<br/>
+**bool MicroGear::chat(char* target, int message)**<br/>
+**bool MicroGear::chat(char* target, double message)**<br/>
+**bool MicroGear::chat(char* target, double, int decimal)**<br/>
+**bool MicroGear::chat(char* target, String message)**<br/>
 		
 **arguments**
 * *target* - the alias of the microgear(s) that a message will be sent to.
@@ -220,11 +219,11 @@ microgear can set its own alias, which to be used for others make a function cal
 
 ---
 
-**bool MicroGear::publish(char* topic, char* message [, bool retained])**<br />
-**bool MicroGear::publish(char* topic, double message [, bool retained]);**<br />
-**bool MicroGear::publish(char* topic, double message, int decimal [, bool retained]);**<br />
-**bool MicroGear::publish(char* topic, int message [, bool retained]);**<br />
-**bool MicroGear::publish(char* topic, String message [, bool retained]);**<br />
+**bool MicroGear::publish(char* topic, char* message [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, double message [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, double message, int decimal [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, int message [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, String message [, bool retained])**<br/>
 
 In the case that the microgear want to send a message to an unspecified receiver, the developer can use the function publish to the desired topic, which all the microgears that subscribe such topic will receive a message.
 
@@ -252,6 +251,22 @@ cancel subscription
 **arguments**
 * *topic* - name of topic to be send a message to.
 
+---
+**void microgear.writeFeed (char* feedid, char *datajson)**<br/>
+**void microgear.writeFeed (char* feedid, char *datajson, char *apikey)**<br/>
+**void microgear.writeFeed (char* feedid, String datajson)**<br/>
+**void microgear.writeFeed (char* feedid, String datajson, char *apikey)**<br/>
+
+write time series data to a feed storage
+
+**arguments**
+* *feedid* - name of the feed 
+* *datajson* - data string in json format 
+* *apikey* - apikey for authorization. If apikey is not specified, you will need to allow the AppID to access feed and then the default apikey will be assigned automatically.
+
+```js
+microgear.writeFeed("homesensor","{temp:25.7,humid:62.8,light:8.5}");
+```
 ---
 
 **void MicroGear::resetToken()**

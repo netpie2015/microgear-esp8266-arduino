@@ -35,6 +35,7 @@ bool AuthClient::connect(bool issecuremode) {
 void AuthClient::stop() {
     client->stop();
 }
+
 /**
  * [AuthClient::writeout write string to client
  * @param str     text
