@@ -252,6 +252,21 @@ cancel subscription
 * *topic* - name of topic to be send a message to.
 
 ---
+**void microgear.writeFeed (char* feedid, char *datajson)**
+**void microgear.writeFeed (char* feedid, char *datajson, char *apikey)**
+**void microgear.writeFeed (char* feedid, String *datajson)**
+**void microgear.writeFeed (char* feedid, String *datajson, char *apikey)**
+write time series data to a feed storage
+
+**arguments**
+* *feedid* - name of the feed 
+* *datajson* - data string in json format 
+* *apikey* - apikey for authorization. If apikey is not specified, you will need to allow the AppID to access feed and then the default apikey will be assigned automatically.
+
+```js
+microgear.writeFeed("homesensor","{temp:25.7,humid:62.8,light:8.5}");
+```
+---
 
 **void MicroGear::resetToken()**
 
