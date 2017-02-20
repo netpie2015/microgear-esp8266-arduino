@@ -219,7 +219,7 @@ microgear can set its own alias, which to be used for others make a function cal
 
 ---
 
-**bool MicroGear::[publish](#publish)(char* topic, char* message [, bool retained])**<br/>
+**bool MicroGear::publish(char* topic, char* message [, bool retained])**<br/>
 **bool MicroGear::publish(char* topic, double message [, bool retained])**<br/>
 **bool MicroGear::publish(char* topic, double message, int decimal [, bool retained])**<br/>
 **bool MicroGear::publish(char* topic, int message [, bool retained])**<br/>
