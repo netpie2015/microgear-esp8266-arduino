@@ -160,6 +160,17 @@ microgear.init("sXfqDcXHzbFXiLk", "DNonzg2ivwS8ceksykGntrfQjxbL98", "myplant");
 
 ---
 
+**void MicroGear:: setEEPROMOffset(int offset)**
+
+Shift the offset of an EEPROM address where a microgear token is stored. This command will be useful if your application wants to store some other data in an EEPROM as well. The default offset value is 0.
+
+![EEPROM-token](docs/images/EEPROM-token-diagram.png)
+
+**arguments**
+* *offset* - The EEPROM address offset vale. The default is 0.
+
+---
+
 **void MicroGear::on(unsigned char event, void (* callback)(char*, uint8_t*,unsigned int))**
 
 Add a callback listener to the event.
