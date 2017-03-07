@@ -12,7 +12,7 @@
 #include "SHA1.h"
 //#include "debug.h"
 
-#define GEARAUTHHOST "ptt.netpie.io"
+#define GEARAUTHHOST "pct.netpie.io"
 #define GEARAUTHPORT 8080
 #define GEARAUTHSECUREPORT 8081
 
