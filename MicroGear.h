@@ -17,6 +17,7 @@
 #include "AuthClient.h"
 //#include "debug.h"
 
+#define GEARAUTHHOST "ga.netpie.io"
 #define GBPORT 1883
 #define GBSECUREPORT 8883
 #define DEFAULTSECUREMODE false

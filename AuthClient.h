@@ -12,7 +12,6 @@
 #include "SHA1.h"
 //#include "debug.h"
 
-#define GEARAUTHHOST "ga.netpie.io"
 #define GEARAUTHPORT 8080
 #define GEARAUTHSECUREPORT 8081
 
