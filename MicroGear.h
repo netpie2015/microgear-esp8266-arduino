@@ -86,6 +86,7 @@ class MicroGear {
 		int eepromoffset;
 		bool eepromready;
         int backoff, retry;
+        char gearauth[MAXGEARAUTHSIZE+1];
 
         void* self;
         AuthClient* authclient;
@@ -98,7 +99,6 @@ class MicroGear {
 		void syncTime(Client*, unsigned long*);
 		void initEndpoint(Client*, char*);
         bool getToken(char*, char*, char*, char*, char*);
-
 	public:
 		int constate;
         char* endpoint;
@@ -150,6 +150,7 @@ class MicroGear {
 		void setEEPROMOffset(int);
 		void readEEPROM(char*,int, int);
 		void writeEEPROM(char*,int, int);
+        int setConfig(char*, char*);
 };
 
 #endif

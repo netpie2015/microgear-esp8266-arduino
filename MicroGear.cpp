@@ -114,7 +114,7 @@ void MicroGear::initEndpoint(Client *client, char* endpoint) {
         char pstr[100];
         int port = this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT;
 
-        if(client->connect(GEARAUTHHOST,port)){
+        if(client->connect(gearauth,port)){
 			sprintf(pstr,"GET /api/endpoint/%s HTTP/1.1\r\n\r\n",this->gearkey);
 			client->write((const uint8_t *)pstr,strlen(pstr));
 
@@ -137,7 +137,7 @@ void MicroGear::syncTime(Client *client, unsigned long *bts) {
     int port = (this->securemode)?GEARAUTHSECUREPORT:GEARAUTHPORT;
 
     *bts = 0;
-    if(client->connect(GEARAUTHHOST,port)){
+    if(client->connect(gearauth,port)){
 
 		if (this->securemode) {
 			WiFiClientSecure *clientsecure = (WiFiClientSecure *)(client);
@@ -148,7 +148,7 @@ void MicroGear::syncTime(Client *client, unsigned long *bts) {
 				Serial.print("fingerprint loaded from eeprom : ");
 				Serial.println(tstr);
 			#endif
-			if (clientsecure->verify(tstr, GEARAUTHHOST)) {
+			if (clientsecure->verify(tstr, gearauth)) {
 				#ifdef DEBUG_H
 					Serial.println("fingerprint matched");
 				#endif
@@ -208,6 +208,9 @@ MicroGear::MicroGear(Client& netclient ) {
     this->tokensecret = NULL;
     this->backoff = 10;
     this->retry = RETRY;
+
+    strcpy(this->gearauth,GEARAUTHHOST);
+    this->gearauth[MAXGEARAUTHSIZE] = '\0';
 
     this->eepromoffset = 0;
     cb_message = NULL;
@@ -283,7 +286,7 @@ void MicroGear::resetToken() {
                 char revokecode[REVOKECODESIZE+1];
                 int port = this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT;
                 
-                if(sockclient->connect(GEARAUTHHOST,port)){
+                if(sockclient->connect(gearauth,port)){
 					readEEPROM(token,EEPROM_TOKENOFFSET,TOKENSIZE);
 					readEEPROM(revokecode,EEPROM_REVOKECODEOFFSET,REVOKECODESIZE);
 					sprintf(pstr,"GET /api/revoke/%s/%s HTTP/1.1\r\n\r\n",token,revokecode);
@@ -514,7 +517,7 @@ int MicroGear::connectBroker(char* appid) {
 
     if (authclient) delete(authclient);
     authclient = new AuthClient(*sockclient);
-    authclient->init(appid,scope,bootts);
+    authclient->init(gearauth,appid,scope,bootts);
     
     tokenOK = getToken(this->gearkey,this->gearalias,token,tokensecret,endpoint);
     delete(authclient);
@@ -820,4 +823,14 @@ void MicroGear::strcat(char* a, char* b) {
 int MicroGear::state() {
     if (!mqttclient) return -9;
     else return this->mqttclient->state();
+}
+
+int MicroGear::setConfig(char* key, char* value) {
+    if (strcmp(key,"GEARAUTH")==0) {
+        strncpy(gearauth,value,MAXGEARAUTHSIZE);
+        return 1;
+    }
+    else {
+        return 0;
+    }
 }
