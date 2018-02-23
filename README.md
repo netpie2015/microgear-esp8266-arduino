@@ -36,18 +36,27 @@ Make sure ther following ports are allowed to connect from your network.
 #include <ESP8266WiFi.h>
 #include <MicroGear.h>
 
-const char* ssid     = <WIFI_SSID>;
-const char* password = <WIFI_KEY>;
+/* ------------------- Setting Device -------------------- */
+const char* ssid     = "YOUR_WIFI_SSID";
+const char* password = "YOUR_WIFI_PASSWORD";
 
-#define APPID   <APPID>
-#define KEY     <APPKEY>
-#define SECRET  <APPSECRET>
-#define ALIAS   "esp8266"
+#define APPID   "YOUR_NETPIE_APPID"
+#define KEY     "YOUR_NETPIE_APPID"
+#define SECRET  "YOUR_NETPIE_APPID"
+#define ALIAS   "YOUR_ALIAS"
+/* ------------------------------------------------------- */
 
 WiFiClient client;
 
-int timer = 0;
+int last_chat_time = 0;
 MicroGear microgear(client);
+
+/* When a microgear is connected, do this */
+void onConnected(char *attribute, uint8_t* msg, unsigned int msglen) {
+    Serial.println("Connected to NETPIE...");
+    // ตั้ง alias ของ microgear นี้เป็น ALIAS
+    microgear.setAlias(ALIAS);
+}
 
 /* If a new message arrives, do this */
 void onMsghandler(char *topic, uint8_t* msg, unsigned int msglen) {
@@ -70,16 +79,12 @@ void onLostgear(char *attribute, uint8_t* msg, unsigned int msglen) {
     Serial.println();
 }
 
-/* When a microgear is connected, do this */
-void onConnected(char *attribute, uint8_t* msg, unsigned int msglen) {
-    Serial.println("Connected to NETPIE...");
-    /* Set the alias of this microgear ALIAS */
-    microgear.setAlias(ALIAS);
-}
-
-
 void setup() {
     /* Add Event listeners */
+    
+    /* Call onConnected() when NETPIE connection is established */
+    microgear.on(CONNECTED,onConnected);
+    
     /* Call onMsghandler() when new message arraives */
     microgear.on(MESSAGE,onMsghandler);
 
@@ -88,9 +93,6 @@ void setup() {
 
     /* Call onLostgear() when some gear goes offline */
     microgear.on(ABSENT,onLostgear);
-
-    /* Call onConnected() when NETPIE connection is established */
-    microgear.on(CONNECTED,onConnected);
 
     Serial.begin(115200);
     Serial.println("Starting...");
@@ -103,7 +105,6 @@ void setup() {
             Serial.print(".");
         }
     }
-
     Serial.println("WiFi connected");  
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
@@ -118,29 +119,21 @@ void setup() {
 void loop() {
     /* To check if the microgear is still connected */
     if (microgear.connected()) {
-        Serial.println("connected");
-
         /* Call this method regularly otherwise the connection may be lost */
         microgear.loop();
 
-        if (timer >= 1000) {
-            Serial.println("Publish...");
+        if (millis() - last_chat_time >= 1000) {
+            Serial.println("Send chat message >>>");
 
             /* Chat with the microgear named ALIAS which is myself */
-            microgear.chat(ALIAS,"Hello");
-            timer = 0;
+            microgear.chat(ALIAS, "Hello..");
+            last_chat_time = millis();
         } 
-        else timer += 100;
     }
     else {
         Serial.println("connection lost, reconnect...");
-        if (timer >= 5000) {
-            microgear.connect(APPID);
-            timer = 0;
-        }
-        else timer += 100;
+        microgear.connect(APPID);
     }
-    delay(100);
 }
 ```
 ## Library Usage
