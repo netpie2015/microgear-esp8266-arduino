@@ -725,11 +725,13 @@ bool MicroGear::pushOwner(char *message) {
 }
 
 bool MicroGear::pushOwner(double message) {
-    return pushOwner(message);
+    char buff[MAXBUFFSIZE] = "/@push/owner";
+    return publish(buff, message);
 }
 
 bool MicroGear::pushOwner(int message) {
-    return pushOwner(message);
+    char buff[MAXBUFFSIZE] = "/@push/owner";
+    return publish(buff, message);
 }
 
 bool MicroGear::pushOwner(String message) {
