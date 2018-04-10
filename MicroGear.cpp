@@ -712,12 +712,30 @@ bool MicroGear::writeFeed(char* feedname, char *data) {
 bool MicroGear::writeFeed(char* feedname, String data, char* apikey) {
     char buff[MAXBUFFSIZE];
     data.toCharArray(buff,MAXBUFFSIZE-1);
-    
     return writeFeed(feedname, buff, apikey);
 }
 
 bool MicroGear::writeFeed(char* feedname, String data) {
     return writeFeed(feedname, data, NULL);
+}
+
+bool MicroGear::pushOwner(char *message) {
+    char buff[MAXBUFFSIZE] = "/@push/owner";
+    return publish(buff, message);
+}
+
+bool MicroGear::pushOwner(double message) {
+    return pushOwner(message);
+}
+
+bool MicroGear::pushOwner(int message) {
+    return pushOwner(message);
+}
+
+bool MicroGear::pushOwner(String message) {
+    char buff[MAXBUFFSIZE];
+    message.toCharArray(buff,MAXBUFFSIZE-1);
+    return pushOwner(buff);
 }
 
 /*
