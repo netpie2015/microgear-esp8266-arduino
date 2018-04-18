@@ -285,6 +285,19 @@ microgear.writeFeed("homesensor","{temp:25.7,humid:62.8,light:8.5}");
 To send a revoke token control message to NETPIE and delete the token from cache. As a result, the microgear will need to request a new token for the next connection.
 
 ---
+**void microgear.pushOwner (char *message)**<br/>
+**void microgear.pushOwner (double *message)**<br/>
+**void microgear.pushOwner (int *message)**<br/>
+**void microgear.pushOwner (String *message)**<br/>
+push notification to NETPIE mobile application
+
+**arguments**
+* *message* - message to be sent
+
+```js
+microgear.pushOwner("temp:25.7");
+```
+---
 
 **void MicroGear::loop()**
 
