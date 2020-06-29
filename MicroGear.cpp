@@ -137,63 +137,69 @@ void MicroGear::syncTime(Client *client, unsigned long *bts) {
     int port = (this->securemode)?GEARAUTHSECUREPORT:GEARAUTHPORT;
 
     *bts = 0;
+    if (this->securemode) {
+        WiFiClientSecure *clientsecure = (WiFiClientSecure *)(client);
+        // verify a certificate fingerprint against a fingerprint saved in eeprom
+        readEEPROM(tstr, EEPROM_CERTFINGERPRINT, FINGERPRINTSIZE);
+        #ifdef DEBUG_H
+            Serial.print("fingerprint loaded from eeprom : ");
+            Serial.println(tstr);
+            Serial.print("Host : ");
+            Serial.println(gearauth);
+        #endif
+        clientsecure->setFingerprint(tstr);
+        if(clientsecure->connect(gearauth,port)){
+            if (clientsecure->verify(tstr, gearauth)) {
+                #ifdef DEBUG_H
+                    Serial.println("fingerprint matched");
+                #endif
+            }
+        }
+        else {
+            clientsecure->setInsecure();
+            if(clientsecure->connect(gearauth,port)){
+                #ifdef DEBUG_H
+                    Serial.println("fingerprint mismatched, going to update");
+                #endif
+                AuthClient::randomString(nonce,8);
+                sprintf(tstr,"GET /api/fingerprint/%s/%s HTTP/1.1\r\n\r\n",this->gearkey,nonce);
+                clientsecure->write((const uint8_t *)tstr,strlen(tstr));
+                delay(800);
+                getHTTPReply(clientsecure,tstr,200);
+                tstr[FINGERPRINTSIZE-1] = '\0';        // split fingerprint and signature
+                sprintf(hashkey,"%s&%s&%s",this->gearkey,this->gearsecret,nonce);
+                Sha1.initHmac((uint8_t*)hashkey,strlen(hashkey));
+                Sha1.HmacBase64(hash, tstr);
+                for (int i=0;i<HMACSIZE;i++)
+                    if (hash[i]=='/') hash[i] = '_';
+                if(strcmp(hash,tstr+FINGERPRINTSIZE)==0) {
+                    #ifdef DEBUG_H
+                        Serial.println("new fingerprint updated");
+                        Serial.print("fingerprint : ");
+                        Serial.println(tstr);
+                    #endif
+                    writeEEPROM(tstr, EEPROM_CERTFINGERPRINT, FINGERPRINTSIZE);
+                }
+                else {
+                    #ifdef DEBUG_H
+                        Serial.println("fingerprint verification failed, abort");
+                    #endif
+                    clientsecure->stop();
+                    delay(5000);
+                    return;
+                }
+            }
+        }
+    }
+
     if(client->connect(gearauth,port)){
-
-		if (this->securemode) {
-			WiFiClientSecure *clientsecure = (WiFiClientSecure *)(client);
-
-			// verify a certificate fingerprint against a fingerprint saved in eeprom
-			readEEPROM(tstr, EEPROM_CERTFINGERPRINT, FINGERPRINTSIZE);
-			#ifdef DEBUG_H
-				Serial.print("fingerprint loaded from eeprom : ");
-				Serial.println(tstr);
-			#endif
-			if (clientsecure->verify(tstr, gearauth)) {
-				#ifdef DEBUG_H
-					Serial.println("fingerprint matched");
-				#endif
-			}
-			else {
-				#ifdef DEBUG_H
-					Serial.println("fingerprint mismatched, going to update");
-				#endif
-				AuthClient::randomString(nonce,8);
-				sprintf(tstr,"GET /api/fingerprint/%s/%s HTTP/1.1\r\n\r\n",this->gearkey,nonce);
-				clientsecure->write((const uint8_t *)tstr,strlen(tstr));
-				delay(800);
-				getHTTPReply(clientsecure,tstr,200);
-				tstr[FINGERPRINTSIZE-1] = '\0';        // split fingerprint and signature
-				sprintf(hashkey,"%s&%s&%s",this->gearkey,this->gearsecret,nonce);
-				Sha1.initHmac((uint8_t*)hashkey,strlen(hashkey));
-				Sha1.HmacBase64(hash, tstr);
-				for (int i=0;i<HMACSIZE;i++)
-					if (hash[i]=='/') hash[i] = '_';
-
-				if(strcmp(hash,tstr+FINGERPRINTSIZE)==0) {
-					#ifdef DEBUG_H
-						Serial.println("new fingerprint updated");
-					#endif
-					writeEEPROM(tstr, EEPROM_CERTFINGERPRINT, FINGERPRINTSIZE);
-				}
-				else {
-					#ifdef DEBUG_H
-						Serial.println("fingerprint verification failed, abort");
-					#endif
-					clientsecure->stop();
-					delay(5000);
-					return;
-				}
-			}
-		}
-
-		strcpy(tstr,"GET /api/time HTTP/1.1\r\n\r\n");
-		client->write((const uint8_t *)tstr,strlen(tstr));
-
-		delay(1000);
-		getHTTPReply(client,tstr,200);
-		*bts = atol(tstr) - millis()/1000;
-		client->stop();
-	}
+        strcpy(tstr,"GET /api/time HTTP/1.1\r\n\r\n");
+        client->write((const uint8_t *)tstr,strlen(tstr));
+        delay(1000);
+        getHTTPReply(client,tstr,200);
+        *bts = atol(tstr) - millis()/1000;
+        client->stop();
+    }
 }
 
 MicroGear::MicroGear(Client& netclient ) {
