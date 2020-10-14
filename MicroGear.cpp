@@ -672,34 +672,6 @@ bool MicroGear::publish(char* topic, String message, bool retained) {
     return publish(topic, buff, retained);
 }
 
-bool MicroGear::publish(char* topic, String message, String apikey) {
-    char buff[MAXBUFFSIZE];
-    message.toCharArray(buff,MAXBUFFSIZE-1);
-    
-	char top[MAXTOPICSIZE] = "";
-	strcat(top,topic);
-	if(apikey!=""){
-		strcat(top,"/");
-		char buffapikey[MAXBUFFSIZE];
-		apikey.toCharArray(buffapikey,MAXBUFFSIZE);
-		strcat(top,buffapikey);
-	}
-    return publish(top, buff);
-}
-
-bool MicroGear::publish(char* topic, String message, char* apikey) {
-    char buff[MAXBUFFSIZE];
-    message.toCharArray(buff,MAXBUFFSIZE-1);
-    
-	char top[MAXTOPICSIZE] = "";
-	strcat(top,topic);
-	if(apikey!=""){
-		strcat(top,"/");
-		strcat(top,apikey);
-	}
-    return publish(top, buff);
-}
-
 bool MicroGear::writeFeed(char* feedname, char *data, char* apikey) {
     char buff[MAXBUFFSIZE] = "/@writefeed/";
     
@@ -718,12 +690,33 @@ bool MicroGear::writeFeed(char* feedname, char *data) {
 bool MicroGear::writeFeed(char* feedname, String data, char* apikey) {
     char buff[MAXBUFFSIZE];
     data.toCharArray(buff,MAXBUFFSIZE-1);
-    
     return writeFeed(feedname, buff, apikey);
 }
 
 bool MicroGear::writeFeed(char* feedname, String data) {
     return writeFeed(feedname, data, NULL);
+}
+
+bool MicroGear::pushOwner(char *message) {
+    char buff[MAXBUFFSIZE] = "/@push/owner";
+    return publish(buff, message);
+}
+
+bool MicroGear::pushOwner(double message) {
+    char buff[MAXBUFFSIZE] = "/@push/owner";
+    return publish(buff, message);
+}
+
+bool MicroGear::pushOwner(int message) {
+    char buff[MAXBUFFSIZE] = "/@push/owner";
+    return publish(buff, message);
+}
+
+bool MicroGear::pushOwner(String message) {
+    char top[MAXBUFFSIZE] = "/@push/owner";
+    char buff[MAXBUFFSIZE];
+    message.toCharArray(buff,MAXBUFFSIZE-1);
+    return publish(top, message);
 }
 
 /*

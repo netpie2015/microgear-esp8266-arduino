@@ -286,6 +286,20 @@ To send a revoke token control message to NETPIE and delete the token from cache
 
 ---
 
+**void microgear.pushOwner (char *message)**<br/>
+**void microgear.pushOwner (double *message)**<br/>
+**void microgear.pushOwner (int *message)**<br/>
+**void microgear.pushOwner (String *message)**<br/>
+push notification to NETPIE mobile application
+
+**arguments**
+* *message* - message to be sent
+
+```js
+microgear.pushOwner("temp:25.7");
+```
+---
+
 **void MicroGear::loop()**
 
 This method has to be called regularly in the arduino loop() function to keep connection alive and to handle incoming messages.

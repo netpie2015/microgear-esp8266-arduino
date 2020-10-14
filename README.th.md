@@ -269,7 +269,19 @@ microgear.writeFeed("homesensor","{temp:25.7,humid:62.8,light:8.5}");
 ส่งคำสั่ง revoke token ไปยัง netpie และลบ token ออกจาก cache ส่งผลให้ microgear ต้องขอ token ใหม่ในการเชื่อมต่อครั้งต่อไป
 
 ---
+**void microgear.pushOwner (char *message)**<br/>
+**void microgear.pushOwner (double *message)**<br/>
+**void microgear.pushOwner (int *message)**<br/>
+**void microgear.pushOwner (String *message)**<br/>
+ส่งการแจ้งเตือน ไปยัง NETPIE mobile application
 
+**arguments**
+* *message* - ข้อความ
+
+```js
+microgear.pushOwner("temp:25.7");
+```
+---
 **void MicroGear::loop()**
 
 method นี้ควรถูกเรียกใน arduino loop() เป็นระยะๆ เพื่อที่ microgear library จะได้ keep alive connection alive และจัดการกับ message ที่เข้ามา

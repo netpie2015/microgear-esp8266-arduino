@@ -130,6 +130,11 @@ class MicroGear {
 		bool writeFeed(char*, String);
 		bool writeFeed(char*, String, char*);
 
+		bool pushOwner(char*);
+		bool pushOwner(double);
+		bool pushOwner(int);
+		bool pushOwner(String);
+
 		bool chat(char*, char*);
 		bool chat(char*, int);
 		bool chat(char*, double);
