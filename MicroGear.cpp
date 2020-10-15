@@ -114,7 +114,7 @@ void MicroGear::initEndpoint(Client *client, char* endpoint) {
         char pstr[100];
         int port = this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT;
 
-        if(client->connect(GEARAUTHHOST,port)){
+        if(client->connect(gearauth,port)){
 			sprintf(pstr,"GET /api/endpoint/%s HTTP/1.1\r\n\r\n",this->gearkey);
 			client->write((const uint8_t *)pstr,strlen(pstr));
 
@@ -137,63 +137,69 @@ void MicroGear::syncTime(Client *client, unsigned long *bts) {
     int port = (this->securemode)?GEARAUTHSECUREPORT:GEARAUTHPORT;
 
     *bts = 0;
-    if(client->connect(GEARAUTHHOST,port)){
+    if (this->securemode) {
+        WiFiClientSecure *clientsecure = (WiFiClientSecure *)(client);
+        // verify a certificate fingerprint against a fingerprint saved in eeprom
+        readEEPROM(tstr, EEPROM_CERTFINGERPRINT, FINGERPRINTSIZE);
+        #ifdef DEBUG_H
+            Serial.print("fingerprint loaded from eeprom : ");
+            Serial.println(tstr);
+            Serial.print("Host : ");
+            Serial.println(gearauth);
+        #endif
+        clientsecure->setFingerprint(tstr);
+        if(clientsecure->connect(gearauth,port)){
+            if (clientsecure->verify(tstr, gearauth)) {
+                #ifdef DEBUG_H
+                    Serial.println("fingerprint matched");
+                #endif
+            }
+        }
+        else {
+            clientsecure->setInsecure();
+            if(clientsecure->connect(gearauth,port)){
+                #ifdef DEBUG_H
+                    Serial.println("fingerprint mismatched, going to update");
+                #endif
+                AuthClient::randomString(nonce,8);
+                sprintf(tstr,"GET /api/fingerprint/%s/%s HTTP/1.1\r\n\r\n",this->gearkey,nonce);
+                clientsecure->write((const uint8_t *)tstr,strlen(tstr));
+                delay(800);
+                getHTTPReply(clientsecure,tstr,200);
+                tstr[FINGERPRINTSIZE-1] = '\0';        // split fingerprint and signature
+                sprintf(hashkey,"%s&%s&%s",this->gearkey,this->gearsecret,nonce);
+                Sha1.initHmac((uint8_t*)hashkey,strlen(hashkey));
+                Sha1.HmacBase64(hash, tstr);
+                for (int i=0;i<HMACSIZE;i++)
+                    if (hash[i]=='/') hash[i] = '_';
+                if(strcmp(hash,tstr+FINGERPRINTSIZE)==0) {
+                    #ifdef DEBUG_H
+                        Serial.println("new fingerprint updated");
+                        Serial.print("fingerprint : ");
+                        Serial.println(tstr);
+                    #endif
+                    writeEEPROM(tstr, EEPROM_CERTFINGERPRINT, FINGERPRINTSIZE);
+                }
+                else {
+                    #ifdef DEBUG_H
+                        Serial.println("fingerprint verification failed, abort");
+                    #endif
+                    clientsecure->stop();
+                    delay(5000);
+                    return;
+                }
+            }
+        }
+    }
 
-		if (this->securemode) {
-			WiFiClientSecure *clientsecure = (WiFiClientSecure *)(client);
-
-			// verify a certificate fingerprint against a fingerprint saved in eeprom
-			readEEPROM(tstr, EEPROM_CERTFINGERPRINT, FINGERPRINTSIZE);
-			#ifdef DEBUG_H
-				Serial.print("fingerprint loaded from eeprom : ");
-				Serial.println(tstr);
-			#endif
-			if (clientsecure->verify(tstr, GEARAUTHHOST)) {
-				#ifdef DEBUG_H
-					Serial.println("fingerprint matched");
-				#endif
-			}
-			else {
-				#ifdef DEBUG_H
-					Serial.println("fingerprint mismatched, going to update");
-				#endif
-				AuthClient::randomString(nonce,8);
-				sprintf(tstr,"GET /api/fingerprint/%s/%s HTTP/1.1\r\n\r\n",this->gearkey,nonce);
-				clientsecure->write((const uint8_t *)tstr,strlen(tstr));
-				delay(800);
-				getHTTPReply(clientsecure,tstr,200);
-				tstr[FINGERPRINTSIZE-1] = '\0';        // split fingerprint and signature
-				sprintf(hashkey,"%s&%s&%s",this->gearkey,this->gearsecret,nonce);
-				Sha1.initHmac((uint8_t*)hashkey,strlen(hashkey));
-				Sha1.HmacBase64(hash, tstr);
-				for (int i=0;i<HMACSIZE;i++)
-					if (hash[i]=='/') hash[i] = '_';
-
-				if(strcmp(hash,tstr+FINGERPRINTSIZE)==0) {
-					#ifdef DEBUG_H
-						Serial.println("new fingerprint updated");
-					#endif
-					writeEEPROM(tstr, EEPROM_CERTFINGERPRINT, FINGERPRINTSIZE);
-				}
-				else {
-					#ifdef DEBUG_H
-						Serial.println("fingerprint verification failed, abort");
-					#endif
-					clientsecure->stop();
-					delay(5000);
-					return;
-				}
-			}
-		}
-
-		strcpy(tstr,"GET /api/time HTTP/1.1\r\n\r\n");
-		client->write((const uint8_t *)tstr,strlen(tstr));
-
-		delay(1000);
-		getHTTPReply(client,tstr,200);
-		*bts = atol(tstr) - millis()/1000;
-		client->stop();
-	}
+    if(client->connect(gearauth,port)){
+        strcpy(tstr,"GET /api/time HTTP/1.1\r\n\r\n");
+        client->write((const uint8_t *)tstr,strlen(tstr));
+        delay(1000);
+        getHTTPReply(client,tstr,200);
+        *bts = atol(tstr) - millis()/1000;
+        client->stop();
+    }
 }
 
 MicroGear::MicroGear(Client& netclient ) {
@@ -208,6 +214,9 @@ MicroGear::MicroGear(Client& netclient ) {
     this->tokensecret = NULL;
     this->backoff = 10;
     this->retry = RETRY;
+
+    strcpy(this->gearauth,GEARAUTHHOST);
+    this->gearauth[MAXGEARAUTHSIZE] = '\0';
 
     this->eepromoffset = 0;
     cb_message = NULL;
@@ -283,7 +292,7 @@ void MicroGear::resetToken() {
                 char revokecode[REVOKECODESIZE+1];
                 int port = this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT;
                 
-                if(sockclient->connect(GEARAUTHHOST,port)){
+                if(sockclient->connect(gearauth,port)){
 					readEEPROM(token,EEPROM_TOKENOFFSET,TOKENSIZE);
 					readEEPROM(revokecode,EEPROM_REVOKECODEOFFSET,REVOKECODESIZE);
 					sprintf(pstr,"GET /api/revoke/%s/%s HTTP/1.1\r\n\r\n",token,revokecode);
@@ -514,7 +523,7 @@ int MicroGear::connectBroker(char* appid) {
 
     if (authclient) delete(authclient);
     authclient = new AuthClient(*sockclient);
-    authclient->init(appid,scope,bootts);
+    authclient->init(gearauth,appid,scope,bootts);
     
     tokenOK = getToken(this->gearkey,this->gearalias,token,tokensecret,endpoint);
     delete(authclient);
@@ -710,11 +719,11 @@ bool MicroGear::writeFeed(char* feedname, String data, char* apikey) {
     char buff[MAXBUFFSIZE];
     data.toCharArray(buff,MAXBUFFSIZE-1);
     
-    return writeFeed(feedname, data,apikey);
+    return writeFeed(feedname, buff, apikey);
 }
 
 bool MicroGear::writeFeed(char* feedname, String data) {
-    return writeFeed(feedname, data,NULL);
+    return writeFeed(feedname, data, NULL);
 }
 
 /*
@@ -820,4 +829,14 @@ void MicroGear::strcat(char* a, char* b) {
 int MicroGear::state() {
     if (!mqttclient) return -9;
     else return this->mqttclient->state();
+}
+
+int MicroGear::setConfig(char* key, char* value) {
+    if (strcmp(key,"GEARAUTH")==0) {
+        strncpy(gearauth,value,MAXGEARAUTHSIZE);
+        return 1;
+    }
+    else {
+        return 0;
+    }
 }

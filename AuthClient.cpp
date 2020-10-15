@@ -15,7 +15,8 @@ AuthClient::~AuthClient() {
 
 }
 
-void AuthClient::init(char* appid, char* scope, unsigned long bts) {
+void AuthClient::init(char *authendpoint, char* appid, char* scope, unsigned long bts) {
+    this->authendpoint = authendpoint;
     this->appid = appid;
     this->scope = scope;
     this->bootts = bts;
@@ -24,7 +25,7 @@ void AuthClient::init(char* appid, char* scope, unsigned long bts) {
 bool AuthClient::connect(bool issecuremode) {
     int port = issecuremode?GEARAUTHSECUREPORT:GEARAUTHPORT;
     this->securemode = issecuremode;
-    if (client->connect(GEARAUTHHOST,port)) {
+    if (client->connect(authendpoint,port)) {
         return true;
     }
     else {
@@ -173,7 +174,7 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
         *flag = '\0';
 
         strcpy(signbase,this->securemode?"POST&https%3A%2F%2F":"POST&http%3A%2F%2F");
-        sprintf(strtail(signbase),"%s%%3A%d",GEARAUTHHOST,this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT);
+        sprintf(strtail(signbase),"%s%%3A%d",authendpoint,this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT);
 
         if (mode == _REQUESTTOKEN) {
             writeln("POST /api/rtoken HTTP/1.1");
@@ -183,7 +184,7 @@ int AuthClient::getGearToken(char mode, char* token, char* tokensecret, char* en
             writeln("POST /api/atoken HTTP/1.1");
             strcat(signbase,"%2Fapi%2Fatoken&");
         }
-        sprintf(buff,"Host: %s:%d",GEARAUTHHOST,this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT);
+        sprintf(buff,"Host: %s:%d",authendpoint,this->securemode?GEARAUTHSECUREPORT:GEARAUTHPORT);
         writeln(buff);
 
         write("Authorization: OAuth ");

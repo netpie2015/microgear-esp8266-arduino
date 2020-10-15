@@ -12,12 +12,12 @@
 #include "SHA1.h"
 //#include "debug.h"
 
-#define GEARAUTHHOST "ga.netpie.io"
 #define GEARAUTHPORT 8080
 #define GEARAUTHSECUREPORT 8081
 
 #define MGREV "E8A1b"
 #define MAXVERIFIERSIZE         32
+#define MAXGEARAUTHSIZE         32
 #define TOKENSIZE               16
 #define TOKENSECRETSIZE         32
 #define MAXHEADERLINESIZE       350
@@ -33,8 +33,9 @@ class AuthClient {
         virtual ~AuthClient();
 
         static void randomString(char* ,int);
-        void init(char*, char*,unsigned long);
+        void init(char*, char*, char*,unsigned long);
         bool connect(bool);
+        char *authendpoint;
         void stop();
         void write_P(const char[]);
         void writeln_P(const char[]);
@@ -42,7 +43,6 @@ class AuthClient {
         void writeln(char*);
         bool readln(char*, size_t);
         int getGearToken(char, char*, char*, char*, char*, char*, char*, char *, char*, char*, char*);
-    protected:
     private:
         Client* client;
         char* appid;
@@ -57,6 +57,6 @@ class AuthClient {
         char* strtail(char*);
         void strcat(char*, char*);
         void addParam(char*, char*, char*, bool);
-		unsigned long bootts;
+        unsigned long bootts;
 };
 #endif
